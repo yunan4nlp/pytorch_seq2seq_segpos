@@ -20,38 +20,39 @@ class HyperParams:
         self.verboseIter = 20
 
         self.wordCutOff = 0
-        self.wordEmbSize = 100
+        self.wordEmbSize = 50
         self.wordFineTune = True
         self.wordEmbFile = ""
         self.wordUNKID = 0
         self.wordPaddingID = 0
 
         self.bicharCutOff = 0
-        self.bicharEmbSize = 100
+        self.bicharEmbSize = 50
         self.bicharFineTune = True
-        #self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\bichar.sample"
-        self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\bichar.vec"
+        self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\bichar.sample"
+        #self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\bichar.vec"
         self.bicharUNKID = 0
         self.bicharPaddingID = 0
 
         self.charCutOff = 0
-        self.charEmbSize = 100
+        self.charEmbSize = 50
         self.charFineTune = True
         #self.charEmbFile = ""
         self.charUNKID = 0
         self.charPaddingID = 0
-        self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
+        self.charEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\char.sample"
+        #self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
 
-        self.posEmbSize = 100
+        self.posEmbSize = 50
         self.posFineTune = True
 
-        self.dropProb = 0.5
-        self.rnnHiddenSize = 50
-        self.hiddenSize = 50
+        self.dropProb = 0.25
+        self.rnnHiddenSize = 200
+        self.hiddenSize = 200
         self.thread = 1
         self.learningRate = 0.001
-        self.maxInstance = -1
-        self.batch = 16
+        self.maxInstance = 16
+        self.batch = 1
 
         self.wordAlpha = Alphabet()
         self.charAlpha = Alphabet()

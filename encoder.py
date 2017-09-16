@@ -1,6 +1,11 @@
-import torch.nn as nn
 from read import Reader
+
+import torch.nn as nn
+import torch.nn.functional as F
 import torch.autograd
+
+import torch.nn.init as init
+import numpy
 
 class Encoder(nn.Module):
     def __init__(self, hyperParams):
@@ -14,24 +19,31 @@ class Encoder(nn.Module):
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
+        init.xavier_uniform(self.charEmb.weight, gain=numpy.sqrt(2.0))
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
+        init.xavier_uniform(self.bicharEmb.weight, gain=numpy.sqrt(2.0))
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
+
 
         self.dropOut = nn.Dropout(hyperParams.dropProb)
 
         self.inputDim = self.extCharDim + self.charDim + self.extBiCharDim + self.bicharDim
+        #self.inputDim = self.charDim + self.bicharDim
         self.linearLayer = nn.Linear(in_features= self.inputDim,
-                                     out_features=hyperParams.hiddenSize)
+                                     out_features=hyperParams.hiddenSize,
+                                     bias=True)
+        init.xavier_uniform(self.linearLayer.weight, gain=numpy.sqrt(2.0))
 
         self.bilstm = nn.LSTM(input_size=hyperParams.hiddenSize,
-                          hidden_size=hyperParams.rnnHiddenSize,
-                          batch_first=True,
-                          bidirectional=True,
-                          dropout=hyperParams.dropProb)
+                              hidden_size=hyperParams.rnnHiddenSize,
+                              batch_first=True,
+                              bidirectional=True,
+                              bias=True,
+                              dropout=hyperParams.dropProb)
 
 
 
@@ -41,10 +53,11 @@ class Encoder(nn.Module):
 
     def forward(self, charIndexes, bicharIndexes, hidden, batch = 1):
         extChar = self.extCharEmb(charIndexes)
-        char_num = extChar.size()[1]
         char = self.charEmb(charIndexes)
         extBiChar = self.extBiCharEmb(bicharIndexes)
         biChar = self.bicharEmb(bicharIndexes)
+
+        char_num = extChar.size()[1]
 
         extChar = self.dropOut(extChar)
         char = self.dropOut(char)
@@ -52,9 +65,10 @@ class Encoder(nn.Module):
         biChar = self.dropOut(biChar)
 
         concat = torch.cat((char, extChar, biChar, extBiChar), 2)
+        #concat = torch.cat((char,  biChar), 2)
         concat = concat.view(batch * char_num, self.inputDim)
-        linearOutput = self.dropOut(torch.nn.functional.tanh(self.linearLayer(concat)))
-        linearOutput = linearOutput.view(batch, char_num, self.hyperParams.hiddenSize)
-        output, hidden = self.bilstm(linearOutput, hidden)
+        nonlinearOutput = self.dropOut(F.tanh(self.linearLayer(concat)))
+        nonlinearOutput = nonlinearOutput.view(batch, char_num, self.hyperParams.hiddenSize)
+        output, hidden = self.bilstm(nonlinearOutput, hidden)
         return output, hidden
 

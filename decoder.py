@@ -1,7 +1,11 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from state import state
 from common import getMaxIndex
+import torch.nn.init as init
+import numpy
+
 
 class Decoder(nn.Module):
     def __init__(self, hyperParams):
@@ -9,13 +13,24 @@ class Decoder(nn.Module):
         self.hyperParams = hyperParams
         self.lastWordHidden = []
         self.posEmb = nn.Embedding(hyperParams.posNum, hyperParams.posEmbSize)
+        init.xavier_uniform(self.posEmb.weight, gain=numpy.sqrt(2.0))
+
         self.posDim = hyperParams.posEmbSize
         self.posEmb.weight.requires_grad = True
-        self.incLSTM = nn.LSTMCell(input_size=hyperParams.charEmbSize + hyperParams.posEmbSize,
+        self.incLSTM = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                    hidden_size=hyperParams.rnnHiddenSize,
                                    bias=True)
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
-        self.linearLayer = nn.Linear(hyperParams.rnnHiddenSize + hyperParams.rnnHiddenSize * 2, hyperParams.labelSize)
+        self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
+        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize + hyperParams.rnnHiddenSize * 2,
+                                     out_features=hyperParams.labelSize,
+                                     bias=True)
+        self.combineWordPos = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.posEmbSize,
+                                        out_features=hyperParams.hiddenSize,
+                                        bias=True)
+
+        init.xavier_uniform(self.linearLayer.weight, gain=numpy.sqrt(2.0))
+        init.xavier_uniform(self.combineWordPos.weight, gain=numpy.sqrt(2.0))
         self.dropOut = nn.Dropout(hyperParams.dropProb)
         self.softmax = nn.LogSoftmax()
 
@@ -25,14 +40,16 @@ class Decoder(nn.Module):
         batch_output = []
         batch_state = []
         for idx in range(batch):
-            s = state(insts[idx], self.hyperParams)
+            inst = insts[idx]
+            s = state(inst, self.hyperParams)
             s.h, s.c = self.incLSTM(s.last_word_pos_emb, (s.h, s.c))
             sent_output = []
-            real_char_num = insts[idx].m_char_size
+            real_char_num = inst.m_char_size
             for idy in range(char_num):
                 if idy < real_char_num:
-                    v = torch.cat((self.dropOut(s.h), encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
-                    output = self.dropOut(torch.nn.functional.tanh(self.linearLayer(v)))
+                    #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
+                    v = torch.cat((s.h, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    output = F.tanh(self.linearLayer(v))
                     self.action(s, idy, encoder_output[idx], output)
                     sent_output.append(output)
                 else:
@@ -73,8 +90,9 @@ class Decoder(nn.Module):
                 end = start + last_word_len
                 chars_emb = []
                 for idx in range(start, end):
-                    chars_emb.append(encoder_char[idx].view(1, 1, self.hyperParams.charEmbSize))
+                    chars_emb.append(encoder_char[idx].view(1, 1, 2 * self.hyperParams.rnnHiddenSize))
                 chars_emb = torch.cat(chars_emb, 1)
-                state.last_word_emb = torch.nn.functional.avg_pool1d(chars_emb.permute(0, 2, 1), last_word_len).view(1, self.hyperParams.charEmbSize)
-                state.last_word_pos_emb = torch.cat((state.last_pos_emb, state.last_word_emb), 1)
+                state.last_word_emb = F.avg_pool1d(chars_emb.permute(0, 2, 1), last_word_len).view(1, self.hyperParams.rnnHiddenSize * 2)
+                concat = torch.cat((state.last_pos_emb, state.last_word_emb), 1)
+                state.last_word_pos_emb = self.dropOut(F.tanh(self.combineWordPos(concat)))
                 state.h, state.c = self.incLSTM(state.last_word_pos_emb, (state.h, state.c))

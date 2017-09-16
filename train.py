@@ -248,9 +248,9 @@ class Trainer:
                         actionID = getMaxIndex(self.hyperParams, decoder_output[idx * maxCharSize + idy])
                         if actionID == inst.m_gold_indexes[idy]:
                             train_eval.correct_num += 1
-                        train_eval.gold_num += 1
+                    train_eval.gold_num += inst.m_char_size
                 loss = torch.nn.functional.nll_loss(decoder_output, batch_gold)
-                print("current:", updateIter + 1, "cost: ", loss.data[0], "correct: ", train_eval.acc())
+                print("current: ", updateIter + 1, "cost: ", loss.data[0], "correct: ", train_eval.acc())
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(encoder_parameters, self.hyperParams.clip)
                 torch.nn.utils.clip_grad_norm(decoder_parameters, self.hyperParams.clip)
