@@ -11,26 +11,29 @@ class Decoder(nn.Module):
     def __init__(self, hyperParams):
         super(Decoder, self).__init__()
         self.hyperParams = hyperParams
-        self.lastWordHidden = []
         self.posEmb = nn.Embedding(hyperParams.posNum, hyperParams.posEmbSize)
-        init.xavier_uniform(self.posEmb.weight, gain=numpy.sqrt(2.0))
+        init.uniform(self.posEmb.weight,
+                     a=-numpy.sqrt(3 / hyperParams.posEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.posEmbSize))
 
         self.posDim = hyperParams.posEmbSize
         self.posEmb.weight.requires_grad = True
         self.incLSTM = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                    hidden_size=hyperParams.rnnHiddenSize,
                                    bias=True)
+        init.xavier_uniform(self.incLSTM.weight_hh)
+        init.xavier_uniform(self.incLSTM.weight_ih)
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
         self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
         self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize + hyperParams.rnnHiddenSize * 2,
                                      out_features=hyperParams.labelSize,
-                                     bias=True)
+                                     bias=False)
         self.combineWordPos = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.posEmbSize,
                                         out_features=hyperParams.hiddenSize,
                                         bias=True)
 
-        init.xavier_uniform(self.linearLayer.weight, gain=numpy.sqrt(2.0))
-        init.xavier_uniform(self.combineWordPos.weight, gain=numpy.sqrt(2.0))
+        init.xavier_uniform(self.linearLayer.weight)
+        init.xavier_uniform(self.combineWordPos.weight)
         self.dropOut = nn.Dropout(hyperParams.dropProb)
         self.softmax = nn.LogSoftmax()
 
@@ -48,7 +51,7 @@ class Decoder(nn.Module):
             for idy in range(char_num):
                 if idy < real_char_num:
                     #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
-                    v = torch.cat((s.h, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    v = torch.cat((self.dropOut(s.h), encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     output = F.tanh(self.linearLayer(v))
                     self.action(s, idy, encoder_output[idx], output)
                     sent_output.append(output)
@@ -83,7 +86,7 @@ class Decoder(nn.Module):
 
             if len(state.pos_id) >= 2:
                 state.last_pos.data[0] = state.pos_id[-2]
-                state.last_pos_emb = self.posEmb(state.last_pos)
+                state.last_pos_emb = self.dropOut(self.posEmb(state.last_pos))
             if len(state.words) >= 2:
                 last_word_len = len(state.words[-2])
                 start = index - len(state.words[-1]) - last_word_len + 1

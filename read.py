@@ -3,6 +3,8 @@ import unicodedata
 import torch
 import re
 import torch.nn as nn
+import torch.nn.init as init
+import numpy
 
 class Reader:
 
@@ -75,6 +77,7 @@ class Reader:
         info = allLines[0].strip().split(' ')
         embDim = len(info) - 1
         emb = nn.Embedding(alpha.m_size, embDim)
+        init.xavier_uniform(emb.weight)
         oov_emb = torch.zeros(1, embDim).type(torch.FloatTensor)
         for line in allLines:
             info = line.strip().split(' ')

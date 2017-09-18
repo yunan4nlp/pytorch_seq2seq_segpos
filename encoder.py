@@ -19,12 +19,12 @@ class Encoder(nn.Module):
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
-        init.xavier_uniform(self.charEmb.weight, gain=numpy.sqrt(2.0))
+        init.xavier_uniform(self.charEmb.weight)
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
-        init.xavier_uniform(self.bicharEmb.weight, gain=numpy.sqrt(2.0))
+        init.xavier_uniform(self.bicharEmb.weight)
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
 
@@ -36,7 +36,7 @@ class Encoder(nn.Module):
         self.linearLayer = nn.Linear(in_features= self.inputDim,
                                      out_features=hyperParams.hiddenSize,
                                      bias=True)
-        init.xavier_uniform(self.linearLayer.weight, gain=numpy.sqrt(2.0))
+        init.xavier_uniform(self.linearLayer.weight)
 
         self.bilstm = nn.LSTM(input_size=hyperParams.hiddenSize,
                               hidden_size=hyperParams.rnnHiddenSize,
@@ -44,8 +44,6 @@ class Encoder(nn.Module):
                               bidirectional=True,
                               bias=True,
                               dropout=hyperParams.dropProb)
-
-
 
     def init_hidden(self, batch = 1):
         return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),

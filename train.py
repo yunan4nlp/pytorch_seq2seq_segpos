@@ -210,10 +210,14 @@ class Trainer:
             indexes.append(idx)
 
         encoder_parameters = filter(lambda p: p.requires_grad, self.encoder.parameters())
-        encoder_optimizer = torch.optim.Adam(encoder_parameters, lr = self.hyperParams.learningRate)
+        encoder_optimizer = torch.optim.Adam(params=encoder_parameters,
+                                             lr=self.hyperParams.learningRate,
+                                             weight_decay=self.hyperParams.reg)
 
         decoder_parameters = filter(lambda p: p.requires_grad, self.decoder.parameters())
-        decoder_optimizer = torch.optim.Adam(decoder_parameters, lr = self.hyperParams.learningRate)
+        decoder_optimizer = torch.optim.Adam(params=decoder_parameters,
+                                             lr=self.hyperParams.learningRate,
+                                             weight_decay=self.hyperParams.reg)
 
         batchBlock = train_num // self.hyperParams.batch
         if train_num % self.hyperParams.batch != 0:
