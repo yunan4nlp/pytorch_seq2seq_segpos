@@ -19,16 +19,14 @@ class Encoder(nn.Module):
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
-        init.uniform(self.charEmb.weight,
-                     a=-numpy.sqrt(3 / hyperParams.charEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.charEmbSize))
+        init.kaiming_uniform(self.charEmb.weight)
+
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
-        init.uniform(self.bicharEmb.weight,
-                     a=-numpy.sqrt(3 / hyperParams.bicharEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.bicharEmbSize))
+        init.kaiming_uniform(self.bicharEmb.weight)
+
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
 
