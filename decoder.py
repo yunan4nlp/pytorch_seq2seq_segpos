@@ -21,8 +21,8 @@ class Decoder(nn.Module):
         self.incLSTM = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                    hidden_size=hyperParams.rnnHiddenSize,
                                    bias=True)
-        init.xavier_uniform(self.incLSTM.weight_hh)
-        init.xavier_uniform(self.incLSTM.weight_ih)
+        init.kaiming_uniform(self.incLSTM.weight_hh)
+        init.kaiming_uniform(self.incLSTM.weight_ih)
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
         if hyperParams.useCuda:self.bucket = self.bucket.cuda()
         #self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
@@ -33,8 +33,8 @@ class Decoder(nn.Module):
                                         out_features=hyperParams.hiddenSize,
                                         bias=True)
 
-        init.xavier_uniform(self.linearLayer.weight)
-        init.xavier_uniform(self.combineWordPos.weight)
+        init.kaiming_uniform(self.linearLayer.weight)
+        init.kaiming_uniform(self.combineWordPos.weight)
         self.dropOut = nn.Dropout(hyperParams.dropProb)
         self.softmax = nn.LogSoftmax()
 
