@@ -19,12 +19,16 @@ class Encoder(nn.Module):
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
-        init.xavier_uniform(self.charEmb.weight)
+        init.uniform(self.charEmb.weight,
+                     a=-numpy.sqrt(3 / hyperParams.charEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.charEmbSize))
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
-        init.xavier_uniform(self.bicharEmb.weight)
+        init.uniform(self.bicharEmb.weight,
+                     a=-numpy.sqrt(3 / hyperParams.bicharEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.bicharEmbSize))
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
 
@@ -46,8 +50,12 @@ class Encoder(nn.Module):
                               dropout=hyperParams.dropProb)
 
     def init_hidden(self, batch = 1):
-        return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
-                torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))
+        if self.hyperParams.useCuda:
+            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(),
+                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda())
+        else:
+            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
+                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))
 
     def forward(self, charIndexes, bicharIndexes, hidden, batch = 1):
         extChar = self.extCharEmb(charIndexes)

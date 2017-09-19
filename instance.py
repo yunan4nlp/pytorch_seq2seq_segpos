@@ -8,7 +8,6 @@ class Instance:
         self.m_words = []
         self.m_word_size = 0
 
-        self.m_labels = []
         self.m_gold = []
         self.m_pos = []
         self.m_gold_str = []
@@ -27,7 +26,6 @@ class Instance:
         print(self.m_chars)
         print(self.m_bichars)
         print(self.m_words)
-        print(self.m_labels)
         print(self.m_gold)
 
     def evalPRF(self, words, eval):

@@ -54,6 +54,7 @@ class HyperParams:
         self.reg = 1e-8
         self.maxInstance = 1
         self.batch = 1
+        self.useCuda = False
 
         self.wordAlpha = Alphabet()
         self.charAlpha = Alphabet()

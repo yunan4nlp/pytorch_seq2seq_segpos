@@ -42,7 +42,6 @@ class Reader:
                     word = data[0:pos]
                     label = data[pos + 1:]
                     inst.m_words.append(word)
-                    inst.m_labels.append(label)
                     word_len = len(word)
                     inst.m_gold_str.append('[' + str(count) + ',' + str(count + word_len) + ']')
                     count += word_len

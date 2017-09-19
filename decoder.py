@@ -24,8 +24,9 @@ class Decoder(nn.Module):
         init.xavier_uniform(self.incLSTM.weight_hh)
         init.xavier_uniform(self.incLSTM.weight_ih)
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
-        self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
-        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize + hyperParams.rnnHiddenSize * 2,
+        if hyperParams.useCuda:self.bucket = self.bucket.cuda()
+        #self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
+        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.rnnHiddenSize,
                                      out_features=hyperParams.labelSize,
                                      bias=False)
         self.combineWordPos = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.posEmbSize,
@@ -52,6 +53,8 @@ class Decoder(nn.Module):
                 if idy < real_char_num:
                     #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
                     v = torch.cat((self.dropOut(s.h), encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = F.tanh(self.linearLayer(v))
                     self.action(s, idy, encoder_output[idx], output)
                     sent_output.append(output)
@@ -69,6 +72,7 @@ class Decoder(nn.Module):
     def action(self, state, index, encoder_char, output):
         actionID = getMaxIndex(self.hyperParams, output.view(self.hyperParams.labelSize))
         action = self.hyperParams.labelAlpha.from_id(actionID)
+        #action = state.m_gold[index]
         state.actions.append(action)
         pos = action.find('#')
         if pos == -1:

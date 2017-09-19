@@ -124,9 +124,9 @@ class Trainer:
                 inst.m_bichar_indexes.append(bicharID)
 
             for idx in range(inst.m_gold_size):
-                label = inst.m_gold[idx]
-                labelID = self.hyperParams.labelAlpha.from_string(label)
-                inst.m_gold_indexes.append(labelID)
+                gold = inst.m_gold[idx]
+                goldID = self.hyperParams.labelAlpha.from_string(gold)
+                inst.m_gold_indexes.append(goldID)
 
     def getBatchFeatLabel(self, insts):
         batch = len(insts)
@@ -180,7 +180,10 @@ class Trainer:
                     batch_gold_feats.data[idy + idx * max_gold_size] = inst.m_gold_indexes[idy]
                 else:
                     batch_gold_feats.data[idy + idx * max_gold_size] = 0
-        return batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
+        if self.hyperParams.useCuda:
+            return batch_word_feats.cuda(), batch_char_feats.cuda(), batch_bichar_feats.cuda(), batch_gold_feats.cuda(), batch
+        else:
+            return batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
 
     def train(self, train_file, dev_file, test_file, model_file):
         self.hyperParams.show()
@@ -203,6 +206,10 @@ class Trainer:
 
         self.encoder = Encoder(self.hyperParams)
         self.decoder = Decoder(self.hyperParams)
+
+        if self.hyperParams.useCuda:
+            self.encoder.cuda()
+            self.decoder.cuda()
 
         indexes = []
         train_num = len(trainInsts)
@@ -256,8 +263,10 @@ class Trainer:
                 loss = torch.nn.functional.nll_loss(decoder_output, batch_gold)
                 print("current: ", updateIter + 1, "cost: ", loss.data[0], "correct: ", train_eval.acc())
                 loss.backward()
+
                 torch.nn.utils.clip_grad_norm(encoder_parameters, self.hyperParams.clip)
                 torch.nn.utils.clip_grad_norm(decoder_parameters, self.hyperParams.clip)
+
                 encoder_optimizer.step()
                 decoder_optimizer.step()
 
