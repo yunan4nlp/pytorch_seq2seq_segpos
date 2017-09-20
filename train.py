@@ -18,7 +18,7 @@ class Trainer:
         self.pos_state = {}
         self.hyperParams = HyperParams()
 
-    def createAlphabet(self, trainInsts):
+    def createAlphabet(self, trainInsts, devInsts, testInsts):
         print("create alpha.................")
         for inst in trainInsts:
             for w in inst.m_words:
@@ -47,6 +47,9 @@ class Trainer:
                     self.pos_state[pos] = 1
                 else:
                     self.pos_state[pos] += 1
+
+        self.addTestAlphabet(devInsts)
+        self.addTestAlphabet(testInsts)
 
         self.word_state[self.hyperParams.unk] = self.hyperParams.wordCutOff + 1
         self.word_state[self.hyperParams.padding] = self.hyperParams.wordCutOff + 1
@@ -92,6 +95,23 @@ class Trainer:
         print("char size: ", self.hyperParams.charNum)
         print("bichar size: ", self.hyperParams.bicharNum)
         print("pos size: ", self.hyperParams.posNum)
+
+    def addTestAlphabet(self, testInsts):
+        print("add test alpha...")
+        for inst in testInsts:
+            if not self.hyperParams.charFineTune:
+                for c in inst.m_chars:
+                    if c not in self.char_state:
+                        self.char_state[c] = 1
+                    else:
+                        self.char_state[c] +=1
+
+            if not self.hyperParams.bicharFineTune:
+                for bc in inst.m_bichars:
+                    if bc not in self.bichar_state:
+                        self.bichar_state[bc] = 1
+                    else:
+                        self.bichar_state[bc] += 1
 
 
     def instance2Example(self, insts):
@@ -198,7 +218,7 @@ class Trainer:
         print("Dev Instance: ", len(devInsts))
         print("Test Instance: ", len(testInsts))
 
-        self.createAlphabet(trainInsts)
+        self.createAlphabet(trainInsts, devInsts, testInsts)
 
         self.instance2Example(trainInsts)
         self.instance2Example(devInsts)
