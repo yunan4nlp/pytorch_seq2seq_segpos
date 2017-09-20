@@ -13,8 +13,8 @@ class Decoder(nn.Module):
         self.hyperParams = hyperParams
         self.posEmb = nn.Embedding(hyperParams.posNum, hyperParams.posEmbSize)
         init.uniform(self.posEmb.weight,
-                     a=-numpy.sqrt(3 / hyperParams.posEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.posEmbSize))
+                     a=-numpy.sqrt(3 / hyperParams.posNum),
+                     b=numpy.sqrt(3 / hyperParams.posNum))
 
         self.posDim = hyperParams.posEmbSize
         self.posEmb.weight.requires_grad = True

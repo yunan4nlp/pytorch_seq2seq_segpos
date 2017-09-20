@@ -76,7 +76,9 @@ class Reader:
         info = allLines[0].strip().split(' ')
         embDim = len(info) - 1
         emb = nn.Embedding(alpha.m_size, embDim)
-        init.kaiming_uniform(emb.weight)
+        init.uniform(emb.weight,
+                     a=-numpy.sqrt(3 / alpha.m_size),
+                     b=numpy.sqrt(3 / alpha.m_size))
         oov_emb = torch.zeros(1, embDim).type(torch.FloatTensor)
         for line in allLines:
             info = line.strip().split(' ')
