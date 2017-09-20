@@ -8,6 +8,7 @@ class state:
         self.m_gold = inst.m_gold
         self.words = []
         self.pos_id = []
+        self.pos_labels = []
         self.actions = []
 
         self.last_pos = torch.autograd.Variable(torch.zeros(1)).type(torch.LongTensor)

@@ -250,8 +250,10 @@ class Trainer:
         if train_num % self.hyperParams.batch != 0:
             batchBlock += 1
         train_eval = Eval()
-        dev_eval = Eval()
-        test_eval = Eval()
+        dev_eval_seg = Eval()
+        dev_eval_pos = Eval()
+        test_eval_seg = Eval()
+        test_eval_pos = Eval()
         for iter in range(self.hyperParams.maxIter):
             print('###Iteration' + str(iter) + '###')
             random.shuffle(indexes)
@@ -292,21 +294,27 @@ class Trainer:
 
             self.encoder.eval()
             self.decoder.eval()
-            dev_eval.clear()
+            dev_eval_seg.clear()
+            dev_eval_pos.clear()
             for idx in range(len(devInsts)):
                 inst = devInsts[idx]
                 state = self.predict(inst)
-                devInsts[idx].evalPRF(state[0].words, dev_eval)
-            p, r, f = dev_eval.getFscore()
-            print('dev: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+                devInsts[idx].jointPRF(state[0], dev_eval_seg, dev_eval_pos)
+            p, r, f = dev_eval_seg.getFscore()
+            print('seg dev: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+            p, r, f = dev_eval_pos.getFscore()
+            print('pos dev: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
 
-            test_eval.clear()
+            test_eval_seg.clear()
+            test_eval_pos.clear()
             for idx in range(len(testInsts)):
                 inst = testInsts[idx]
                 state = self.predict(inst)
-                testInsts[idx].evalPRF(state[0].words, test_eval)
-            p, r, f = test_eval.getFscore()
-            print('test: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+                testInsts[idx].jointPRF(state[0], test_eval_seg, test_eval_pos)
+            p, r, f = test_eval_seg.getFscore()
+            print('seg test: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+            p, r, f = test_eval_pos.getFscore()
+            print('pos test: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
 
 
 

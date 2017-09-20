@@ -78,6 +78,8 @@ class Decoder(nn.Module):
         if pos == -1:
             if len(state.words) == 0:
                 state.words.append("")
+                state.pos_id.append(self.hyperParams.posUNKID)
+                state.pos_labels.append(self.hyperParams.posAlpha.from_id(self.hyperParams.posUNKID))
                 state.words[-1] += state.m_chars[index]
             else:
                 state.words[-1] += state.m_chars[index]
@@ -85,6 +87,7 @@ class Decoder(nn.Module):
             tmp_word = state.m_chars[index]
             state.words.append(tmp_word)
             posLabel = action[pos + 1:]
+            state.pos_labels.append(posLabel)
             posID = self.hyperParams.posAlpha.from_string(posLabel)
             state.pos_id.append(posID)
 
