@@ -23,6 +23,11 @@ class Decoder(nn.Module):
                                    bias=True)
         init.kaiming_uniform(self.incLSTM.weight_ih)
         init.kaiming_uniform(self.incLSTM.weight_hh)
+        self.incLSTM.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
+                                            numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+        self.incLSTM.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
+                                           numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
         if hyperParams.useCuda:self.bucket = self.bucket.cuda()
         #self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
@@ -35,6 +40,9 @@ class Decoder(nn.Module):
 
         init.kaiming_uniform(self.linearLayer.weight)
         init.kaiming_uniform(self.combineWordPos.weight)
+        self.combineWordPos.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
+                                            numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
+
         self.dropOut = nn.Dropout(hyperParams.dropProb)
         self.softmax = nn.LogSoftmax()
 
