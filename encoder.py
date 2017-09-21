@@ -42,7 +42,7 @@ class Encoder(nn.Module):
         self.linearLayer = nn.Linear(in_features= self.inputDim,
                                      out_features=hyperParams.hiddenSize,
                                      bias=True)
-        init.xavier_uniform(self.linearLayer.weight)
+        init.kaiming_uniform(self.linearLayer.weight)
 
         self.bilstm = nn.LSTM(input_size=hyperParams.hiddenSize,
                               hidden_size=hyperParams.rnnHiddenSize,
@@ -50,6 +50,10 @@ class Encoder(nn.Module):
                               bidirectional=True,
                               bias=True,
                               dropout=hyperParams.dropProb)
+        for ws in self.bilstm.all_weights:
+            for w in ws:
+                if len(w.size()) == 2:
+                    init.kaiming_uniform(w)
 
     def init_hidden(self, batch = 1):
         if self.hyperParams.useCuda:
