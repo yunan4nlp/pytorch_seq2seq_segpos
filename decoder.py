@@ -78,9 +78,11 @@ class Decoder(nn.Module):
         return batch_output, batch_state
 
     def action(self, state, index, encoder_char, output, bTrain):
-        actionID = getMaxIndex(self.hyperParams, output.view(self.hyperParams.labelSize))
-        action = self.hyperParams.labelAlpha.from_id(actionID)
-        if bTrain: action = state.m_gold[index]
+        if bTrain:
+            action = state.m_gold[index]
+        else:
+            actionID = getMaxIndex(self.hyperParams, output.view(self.hyperParams.labelSize))
+            action = self.hyperParams.labelAlpha.from_id(actionID)
         state.actions.append(action)
         pos = action.find('#')
         if pos == -1:
