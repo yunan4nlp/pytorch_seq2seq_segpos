@@ -273,7 +273,7 @@ class Trainer:
                 maxCharSize = batch_char_feats.size()[1]
                 encoder_hidden = self.encoder.init_hidden(batch)
                 encoder_output, encoder_hidden = self.encoder(batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
-                decoder_output, _ = self.decoder(insts, encoder_output, batch)
+                decoder_output, _ = self.decoder(insts, encoder_output, batch, True)
                 train_eval.clear()
                 for idx in range(batch):
                     inst = insts[idx]
@@ -324,7 +324,7 @@ class Trainer:
         batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
         encoder_hidden = self.encoder.init_hidden(batch)
         encoder_output, encoder_hidden = self.encoder(batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
-        decoder_output, state = self.decoder(insts, encoder_output, batch)
+        decoder_output, state = self.decoder(insts, encoder_output, batch, False)
         return state
 
 parser = OptionParser()

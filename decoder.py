@@ -47,7 +47,7 @@ class Decoder(nn.Module):
         self.softmax = nn.LogSoftmax()
 
 
-    def forward(self, insts, encoder_output, batch = 1):
+    def forward(self, insts, encoder_output, batch = 1, bTrain = False):
         char_num = encoder_output.size()[1]
         batch_output = []
         batch_state = []
@@ -64,7 +64,7 @@ class Decoder(nn.Module):
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = F.tanh(self.linearLayer(v))
-                    self.action(s, idy, encoder_output[idx], output)
+                    self.action(s, idy, encoder_output[idx], output, bTrain)
                     sent_output.append(output)
                 else:
                     sent_output.append(self.bucket)
@@ -77,10 +77,10 @@ class Decoder(nn.Module):
         #output = self.softmax(self.linearLayer(encoder_output))
         return batch_output, batch_state
 
-    def action(self, state, index, encoder_char, output):
+    def action(self, state, index, encoder_char, output, bTrain):
         actionID = getMaxIndex(self.hyperParams, output.view(self.hyperParams.labelSize))
         action = self.hyperParams.labelAlpha.from_id(actionID)
-        #action = state.m_gold[index]
+        if bTrain: action = state.m_gold[index]
         state.actions.append(action)
         pos = action.find('#')
         if pos == -1:

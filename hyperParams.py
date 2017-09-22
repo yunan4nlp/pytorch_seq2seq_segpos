@@ -52,7 +52,7 @@ class HyperParams:
         self.thread = 1
         self.learningRate = 0.001
         self.reg = 1e-8
-        self.maxInstance = -1
+        self.maxInstance = 4
         self.batch = 1
         self.useCuda = False
 

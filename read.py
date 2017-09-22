@@ -32,8 +32,8 @@ class Reader:
         insts = []
         r = open(path, encoding='utf8')
         for line in r.readlines():
-            #line = unicodedata.normalize('NFKC',line.strip())
-            line = line.strip()
+            line = unicodedata.normalize('NFKC',line.strip())
+            #line = line.strip()
             inst = Instance()
             if line != "":
                 info = line.split(" ")
@@ -54,11 +54,16 @@ class Reader:
                             inst.m_pos.append(label)
                         else:
                             inst.m_gold.append('APP')
+                # for idx in range(len(inst.m_chars)):
+                #     if idx - 1 >= 0:
+                #         inst.m_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
+                #     else:
+                #         inst.m_bichars.append('<s>' + inst.m_chars[idx])
                 for idx in range(len(inst.m_chars)):
-                    if idx - 1 >= 0:
-                        inst.m_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
+                    if idx + 1 < len(inst.m_chars):
+                        inst.m_bichars.append(inst.m_chars[idx] + inst.m_chars[idx + 1])
                     else:
-                        inst.m_bichars.append('<s>' + inst.m_chars[idx])
+                        inst.m_bichars.append(inst.m_chars[idx] + '<\s>')
                 if len(insts) == maxInst:
                     break
                 inst.m_char_size = len(inst.m_chars)
