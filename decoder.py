@@ -13,8 +13,8 @@ class Decoder(nn.Module):
         self.hyperParams = hyperParams
         self.posEmb = nn.Embedding(hyperParams.posNum, hyperParams.posEmbSize)
         init.uniform(self.posEmb.weight,
-                     a=-numpy.sqrt(3 / hyperParams.posNum),
-                     b=numpy.sqrt(3 / hyperParams.posNum))
+                     a=-numpy.sqrt(3 / hyperParams.posEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.posEmbSize))
 
         self.posDim = hyperParams.posEmbSize
         self.posEmb.weight.requires_grad = True
@@ -30,7 +30,8 @@ class Decoder(nn.Module):
 
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
         if hyperParams.useCuda:self.bucket = self.bucket.cuda()
-        #self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
+        self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
+        if hyperParams.useCuda:self.bucket_rnn = self.bucket_rnn.cuda()
         self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.rnnHiddenSize,
                                      out_features=hyperParams.labelSize,
                                      bias=False)

@@ -54,16 +54,16 @@ class Reader:
                             inst.m_pos.append(label)
                         else:
                             inst.m_gold.append('APP')
-                # for idx in range(len(inst.m_chars)):
-                #     if idx - 1 >= 0:
-                #         inst.m_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
-                #     else:
-                #         inst.m_bichars.append('<s>' + inst.m_chars[idx])
                 for idx in range(len(inst.m_chars)):
-                    if idx + 1 < len(inst.m_chars):
-                        inst.m_bichars.append(inst.m_chars[idx] + inst.m_chars[idx + 1])
+                    if idx - 1 >= 0:
+                        inst.m_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
                     else:
-                        inst.m_bichars.append(inst.m_chars[idx] + '<\s>')
+                        inst.m_bichars.append('<s>' + inst.m_chars[idx])
+                # for idx in range(len(inst.m_chars)):
+                #     if idx + 1 < len(inst.m_chars):
+                #         inst.m_bichars.append(inst.m_chars[idx] + inst.m_chars[idx + 1])
+                #     else:
+                #         inst.m_bichars.append(inst.m_chars[idx] + '<\s>')
                 if len(insts) == maxInst:
                     break
                 inst.m_char_size = len(inst.m_chars)
@@ -84,8 +84,8 @@ class Reader:
         embDim = len(info) - 1
         emb = nn.Embedding(alpha.m_size, embDim)
         init.uniform(emb.weight,
-                     a=-numpy.sqrt(3 / alpha.m_size),
-                     b=numpy.sqrt(3 / alpha.m_size))
+                     a=-numpy.sqrt(3 / embDim),
+                     b=numpy.sqrt(3 / embDim))
         oov_emb = torch.zeros(1, embDim).type(torch.FloatTensor)
         for line in allLines:
             info = line.strip().split(' ')
@@ -97,7 +97,7 @@ class Reader:
                     emb.weight.data[wordID][idx] = val
                     oov_emb[0][idx] += val
         f.close()
-        count = len(indexs)
+        count = len(indexs) + 1
         for idx in range(embDim):
             oov_emb[0][idx] /= count
         unkID = alpha.from_string(unk)

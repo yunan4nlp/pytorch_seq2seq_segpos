@@ -20,16 +20,16 @@ class Encoder(nn.Module):
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
         init.uniform(self.charEmb.weight,
-                     a=-numpy.sqrt(3 /hyperParams.charNum),
-                     b=numpy.sqrt(3 / hyperParams.charNum))
+                     a=-numpy.sqrt(3 /hyperParams.charEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.charEmbSize))
 
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
         init.uniform(self.bicharEmb.weight,
-                     a=-numpy.sqrt(3 /hyperParams.bicharNum),
-                     b=numpy.sqrt(3 / hyperParams.bicharNum))
+                     a=-numpy.sqrt(3 /hyperParams.bicharEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.bicharEmbSize))
 
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
@@ -50,6 +50,7 @@ class Encoder(nn.Module):
                               hidden_size=hyperParams.rnnHiddenSize,
                               batch_first=True,
                               bidirectional=True,
+                              num_layers=1,
                               bias=True,
                               dropout=hyperParams.dropProb)
         for ws in self.bilstm.all_weights:

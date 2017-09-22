@@ -270,6 +270,7 @@ class Trainer:
                 for idx in range(start_pos, end_pos):
                     insts.append(trainInsts[indexes[idx]])
                 batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
+                #print(batch_gold)
                 maxCharSize = batch_char_feats.size()[1]
                 encoder_hidden = self.encoder.init_hidden(batch)
                 encoder_output, encoder_hidden = self.encoder(batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
