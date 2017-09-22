@@ -32,7 +32,8 @@ class Reader:
         insts = []
         r = open(path, encoding='utf8')
         for line in r.readlines():
-            line = unicodedata.normalize('NFKC',line.strip())
+            #line = unicodedata.normalize('NFKC',line.strip())
+            line = line.strip()
             inst = Instance()
             if line != "":
                 info = line.split(" ")

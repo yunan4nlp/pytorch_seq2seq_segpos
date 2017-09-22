@@ -26,7 +26,7 @@ class HyperParams:
         self.wordUNKID = 0
         self.wordPaddingID = 0
 
-        self.bicharCutOff = 0
+        self.bicharCutOff = 1
         self.bicharEmbSize = 200
         self.bicharFineTune = False
         self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\bichar.sample"
@@ -34,7 +34,7 @@ class HyperParams:
         self.bicharUNKID = 0
         self.bicharPaddingID = 0
 
-        self.charCutOff = 0
+        self.charCutOff = 1
         self.charEmbSize = 200
         self.charFineTune = False
         #self.charEmbFile = ""
@@ -43,7 +43,7 @@ class HyperParams:
         self.charEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\char.sample"
         #self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
 
-        self.posEmbSize = 50
+        self.posEmbSize = 100
         self.posFineTune = True
 
         self.dropProb = 0.25
