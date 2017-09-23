@@ -48,8 +48,8 @@ class Trainer:
                 else:
                     self.pos_state[pos] += 1
 
-        #self.addTestAlphabet(devInsts)
-        #self.addTestAlphabet(testInsts)
+        self.addTestAlphabet(devInsts)
+        self.addTestAlphabet(testInsts)
 
         self.word_state[self.hyperParams.unk] = self.hyperParams.wordCutOff + 1
         self.word_state[self.hyperParams.padding] = self.hyperParams.wordCutOff + 1
