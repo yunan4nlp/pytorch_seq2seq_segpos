@@ -48,34 +48,34 @@ class Encoder(nn.Module):
                                           numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
         self.rightLayer = nn.Linear(in_features= self.inputDim,
-                                   out_features=hyperParams.hiddenSize,
-                                   bias=True)
+                                    out_features=hyperParams.hiddenSize,
+                                    bias=True)
         init.kaiming_uniform(self.rightLayer.weight)
         self.rightLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
-                                          numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
+                                           numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
         self.lstm_left = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                      hidden_size=hyperParams.rnnHiddenSize,
                                      bias=True)
 
         self.lstm_right = nn.LSTMCell(input_size=hyperParams.hiddenSize,
-                                     hidden_size=hyperParams.rnnHiddenSize,
-                                     bias=True)
+                                      hidden_size=hyperParams.rnnHiddenSize,
+                                      bias=True)
 
 
         init.kaiming_uniform(self.lstm_left.weight_ih)
         init.kaiming_uniform(self.lstm_left.weight_hh)
         self.lstm_left.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
-                                           numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.lstm_left.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
-                                           numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
 
         init.kaiming_uniform(self.lstm_right.weight_ih)
         init.kaiming_uniform(self.lstm_right.weight_hh)
         self.lstm_right.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
-                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+                                              numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.lstm_right.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
-                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
+                                              numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
 
     def init_bucket_extbichar(self, batch = 1):
         if self.hyperParams.useCuda:
@@ -119,13 +119,18 @@ class Encoder(nn.Module):
         biChar = self.dropOut(biChar)
 
         bucketExtbichar = self.init_bucket_extbichar(batch)
-        leftExtBichar = torch.cat(torch.split(extBiChar, 1, 1)[1:], 1)
-        leftExtBichar = torch.cat((leftExtBichar, bucketExtbichar), 1)
+        if char_num > 1:
+            leftExtBichar = torch.cat(torch.split(extBiChar, 1, 1)[1:], 1)
+            leftExtBichar = torch.cat((leftExtBichar, bucketExtbichar), 1)
+        else:
+            leftExtBichar = bucketExtbichar
 
         bucketBichar = self.init_bucket_bichar(batch)
-        leftBichar = torch.cat(torch.split(biChar, 1, 1)[1:], 1)
-        leftBichar = torch.cat((leftBichar, bucketBichar), 1)
-
+        if char_num > 1:
+            leftBichar = torch.cat(torch.split(biChar, 1, 1)[1:], 1)
+            leftBichar = torch.cat((leftBichar, bucketBichar), 1)
+        else:
+            leftBichar = bucketBichar
         leftConcat = torch.cat((char, extChar, leftBichar, leftExtBichar), 2)
         leftConcat = leftConcat.view(batch * char_num, self.inputDim)
 
