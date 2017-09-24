@@ -44,13 +44,13 @@ class Encoder(nn.Module):
                                      bias=True)
         init.kaiming_uniform(self.linearLayer.weight)
         self.linearLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
-                        numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
+                                            numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
         self.bilstm = nn.LSTM(input_size=hyperParams.hiddenSize,
                               hidden_size=hyperParams.rnnHiddenSize,
                               batch_first=True,
                               bidirectional=True,
-                              num_layers=1,
+                              num_layers=2,
                               bias=True,
                               dropout=hyperParams.dropProb)
         for ws in self.bilstm.all_weights:
