@@ -64,7 +64,7 @@ class Decoder(nn.Module):
                     v = torch.cat((self.dropOut(s.h), encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
-                    output = F.tanh(self.linearLayer(v))
+                    output = self.linearLayer(v)
                     self.action(s, idy, encoder_output[idx], output, bTrain)
                     sent_output.append(output)
                 else:
