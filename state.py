@@ -20,10 +20,10 @@ class state:
 
         self.word_start = 0
 
-        if hyperParams.useCuda:self.last_pos = self.last_pos.cuda()
-        if hyperParams.useCuda:self.last_word_emb = self.last_word_emb.cuda()
-        if hyperParams.useCuda:self.last_pos_emb = self.last_pos_emb.cuda()
-        if hyperParams.useCuda:self.last_word_pos_emb = self.last_word_pos_emb.cuda()
-        if hyperParams.useCuda:self.h = self.h.cuda()
-        if hyperParams.useCuda:self.c = self.c.cuda()
+        if hyperParams.useCuda:self.last_pos = self.last_pos.cuda(hyperParams.gpuID)
+        if hyperParams.useCuda:self.last_word_emb = self.last_word_emb.cuda(hyperParams.gpuID)
+        if hyperParams.useCuda:self.last_pos_emb = self.last_pos_emb.cuda(hyperParams.gpuID)
+        if hyperParams.useCuda:self.last_word_pos_emb = self.last_word_pos_emb.cuda(hyperParams.gpuID)
+        if hyperParams.useCuda:self.h = self.h.cuda(hyperParams.gpuID)
+        if hyperParams.useCuda:self.c = self.c.cuda(hyperParams.gpuID)
 

@@ -79,28 +79,28 @@ class Encoder(nn.Module):
 
     def init_bucket_extbichar(self, batch = 1):
         if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.extBiCharDim)).cuda())
+            return (torch.autograd.Variable(torch.zeros(batch, 1, self.extBiCharDim)).cuda(self.hyperParams.gpuID))
         else:
             return (torch.autograd.Variable(torch.zeros(batch, 1, self.extBiCharDim)))
 
     def init_bucket_bichar(self, batch = 1):
         if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.hyperParams.bicharEmbSize)).cuda())
+            return (torch.autograd.Variable(torch.zeros(batch, 1, self.hyperParams.bicharEmbSize)).cuda(self.hyperParams.gpuID))
         else:
             return (torch.autograd.Variable(torch.zeros(batch, 1, self.hyperParams.bicharEmbSize)))
 
     def init_cell_hidden(self, batch = 1):
         if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)).cuda(),
-                    torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)).cuda())
+            return (torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID),
+                    torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID))
         else:
             return (torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)))
 
     def init_hidden(self, batch = 1):
         if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(),
-                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda())
+            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID),
+                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID))
         else:
             return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))

@@ -52,7 +52,8 @@ class HyperParams:
         self.thread = 1
         self.learningRate = 0.001
         self.reg = 1e-8
-        self.maxInstance = 3
+        self.maxInstance = 2
+        self.gpuID = 1
         self.batch = 1
         self.useCuda = False
 

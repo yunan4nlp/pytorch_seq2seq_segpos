@@ -63,8 +63,8 @@ class Encoder(nn.Module):
 
     def init_hidden(self, batch = 1):
         if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(),
-                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda())
+            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID),
+                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID))
         else:
             return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))

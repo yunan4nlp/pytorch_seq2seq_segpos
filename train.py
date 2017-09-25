@@ -201,7 +201,7 @@ class Trainer:
                 else:
                     batch_gold_feats.data[idy + idx * max_gold_size] = 0
         if self.hyperParams.useCuda:
-            return batch_word_feats.cuda(), batch_char_feats.cuda(), batch_bichar_feats.cuda(), batch_gold_feats.cuda(), batch
+            return batch_word_feats.cuda(self.hyperParams.gpuID), batch_char_feats.cuda(self.hyperParams.gpuID), batch_bichar_feats.cuda(self.hyperParams.gpuID), batch_gold_feats.cuda(self.hyperParams.gpuID), batch
         else:
             return batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
 
@@ -228,8 +228,8 @@ class Trainer:
         self.decoder = Decoder(self.hyperParams)
 
         if self.hyperParams.useCuda:
-            self.encoder.cuda()
-            self.decoder.cuda()
+            self.encoder.cuda(self.hyperParams.gpuID)
+            self.decoder.cuda(self.hyperParams.gpuID)
 
         indexes = []
         train_num = len(trainInsts)

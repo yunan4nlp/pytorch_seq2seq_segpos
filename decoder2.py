@@ -29,9 +29,9 @@ class Decoder(nn.Module):
                                            numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
 
         self.bucket = torch.autograd.Variable(torch.zeros(1, hyperParams.labelSize)).type(torch.FloatTensor)
-        if hyperParams.useCuda:self.bucket = self.bucket.cuda()
+        if hyperParams.useCuda:self.bucket = self.bucket.cuda(self.hyperParams.gpuID)
         self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
-        if hyperParams.useCuda:self.bucket_rnn = self.bucket_rnn.cuda()
+        if hyperParams.useCuda:self.bucket_rnn = self.bucket_rnn.cuda(self.hyperParams.gpuID)
         self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.rnnHiddenSize,
                                      out_features=hyperParams.labelSize,
                                      bias=False)
