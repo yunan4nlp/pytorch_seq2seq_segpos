@@ -2,7 +2,7 @@ from read import Reader
 from hyperParams import HyperParams
 from optparse import OptionParser
 from encoder2 import Encoder
-from decoder import Decoder
+from decoder2 import Decoder
 from common import  getMaxIndex
 from eval import Eval
 import torch.nn

@@ -18,6 +18,8 @@ class state:
         self.h = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
         self.c = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
 
+        self.word_start = 0
+
         if hyperParams.useCuda:self.last_pos = self.last_pos.cuda()
         if hyperParams.useCuda:self.last_word_emb = self.last_word_emb.cuda()
         if hyperParams.useCuda:self.last_pos_emb = self.last_pos_emb.cuda()
