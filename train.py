@@ -15,6 +15,7 @@ class Trainer:
         self.word_state = {}
         self.char_state = {}
         self.bichar_state = {}
+        self.chartype_state = {}
         self.pos_state = {}
         self.hyperParams = HyperParams()
 
@@ -51,6 +52,17 @@ class Trainer:
         self.addTestAlphabet(devInsts)
         self.addTestAlphabet(testInsts)
 
+        self.chartype_state['U'] = 1
+        self.chartype_state['u'] = 1
+        self.chartype_state['E'] = 1
+        self.chartype_state['e'] = 1
+        self.chartype_state['p'] = 1
+        self.chartype_state['d'] = 1
+        self.chartype_state['o'] = 1
+        self.chartype_state[self.hyperParams.padding] = 1
+
+        self.hyperParams.charTypeAlpha.initial(self.chartype_state)
+
         self.word_state[self.hyperParams.unk] = self.hyperParams.wordCutOff + 1
         self.word_state[self.hyperParams.padding] = self.hyperParams.wordCutOff + 1
 
@@ -77,24 +89,29 @@ class Trainer:
         self.hyperParams.charPaddingID = self.hyperParams.charAlpha.from_string(self.hyperParams.padding)
         self.hyperParams.bicharPaddingID = self.hyperParams.bicharAlpha.from_string(self.hyperParams.padding)
         self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(self.hyperParams.padding)
+        self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(self.hyperParams.padding)
 
         self.hyperParams.wordAlpha.set_fixed_flag(True)
         self.hyperParams.charAlpha.set_fixed_flag(True)
         self.hyperParams.bicharAlpha.set_fixed_flag(True)
         self.hyperParams.labelAlpha.set_fixed_flag(True)
         self.hyperParams.posAlpha.set_fixed_flag(True)
+        self.hyperParams.charTypeAlpha.set_fixed_flag(True)
 
         self.hyperParams.wordNum = self.hyperParams.wordAlpha.m_size
         self.hyperParams.charNum = self.hyperParams.charAlpha.m_size
         self.hyperParams.bicharNum = self.hyperParams.bicharAlpha.m_size
         self.hyperParams.labelSize = self.hyperParams.labelAlpha.m_size
         self.hyperParams.posNum = self.hyperParams.posAlpha.m_size
+        self.hyperParams.charTypeNum = self.hyperParams.charTypeAlpha.m_size
+
 
         print("label size: ", self.hyperParams.labelSize)
         print("word size: ", self.hyperParams.wordNum)
         print("char size: ", self.hyperParams.charNum)
         print("bichar size: ", self.hyperParams.bicharNum)
         print("pos size: ", self.hyperParams.posNum)
+        print("char type size: ", self.hyperParams.charTypeNum)
 
     def addTestAlphabet(self, testInsts):
         print("add test alpha...")

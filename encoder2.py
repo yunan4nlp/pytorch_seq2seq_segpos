@@ -43,14 +43,14 @@ class Encoder(nn.Module):
         self.leftLayer = nn.Linear(in_features= self.inputDim,
                                    out_features=hyperParams.hiddenSize,
                                    bias=True)
-        init.kaiming_uniform(self.leftLayer.weight)
+        init.xavier_uniform(self.leftLayer.weight)
         self.leftLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                           numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
         self.rightLayer = nn.Linear(in_features= self.inputDim,
                                     out_features=hyperParams.hiddenSize,
                                     bias=True)
-        init.kaiming_uniform(self.rightLayer.weight)
+        init.xavier_uniform(self.rightLayer.weight)
         self.rightLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                            numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
@@ -63,15 +63,15 @@ class Encoder(nn.Module):
                                       bias=True)
 
 
-        init.kaiming_uniform(self.lstm_left.weight_ih)
-        init.kaiming_uniform(self.lstm_left.weight_hh)
+        init.xavier_uniform(self.lstm_left.weight_ih)
+        init.xavier_uniform(self.lstm_left.weight_hh)
         self.lstm_left.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                              numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.lstm_left.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                              numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
 
-        init.kaiming_uniform(self.lstm_right.weight_ih)
-        init.kaiming_uniform(self.lstm_right.weight_hh)
+        init.xavier_uniform(self.lstm_right.weight_ih)
+        init.xavier_uniform(self.lstm_right.weight_hh)
         self.lstm_right.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                               numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.lstm_right.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
@@ -142,7 +142,7 @@ class Encoder(nn.Module):
         leftNoLinear = leftNoLinear.view(batch, char_num, self.hyperParams.hiddenSize)
         leftLSTMinput = leftNoLinear.permute(1, 0, 2)
 
-        left_h , left_c = self.init_cell_hidden(batch)
+        left_h, left_c = self.init_cell_hidden(batch)
         leftLSTMoutput = []
         for idx in range(char_num):
             left_h, left_c = self.lstm_left(leftLSTMinput[idx], (left_h, left_c))

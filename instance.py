@@ -3,6 +3,10 @@ class Instance:
     def __init__(self):
         self.m_chars = []
         self.m_char_size = 0
+
+        self.m_char_types = []
+        self.m_char_type_size = 0
+
         self.m_bichars = []
         self.m_bichar_size = 0
         self.m_words = []

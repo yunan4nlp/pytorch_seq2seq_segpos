@@ -50,15 +50,16 @@ class HyperParams:
         self.rnnHiddenSize = 200
         self.hiddenSize = 200
         self.thread = 1
-        self.learningRate = 0.001
-        self.reg = 1e-8
-        self.maxInstance = 2
+        self.learningRate = 0.001##down
+        self.reg = 1e-8 ##up
+        self.maxInstance = 4
         self.gpuID = 1
         self.batch = 1
         self.useCuda = False
 
         self.wordAlpha = Alphabet()
         self.charAlpha = Alphabet()
+        self.charTypeAlpha = Alphabet()
         self.bicharAlpha = Alphabet()
 
         self.labelAlpha = Alphabet()

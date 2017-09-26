@@ -21,8 +21,8 @@ class Decoder(nn.Module):
         self.incLSTM = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                    hidden_size=hyperParams.rnnHiddenSize,
                                    bias=True)
-        init.kaiming_uniform(self.incLSTM.weight_ih)
-        init.kaiming_uniform(self.incLSTM.weight_hh)
+        init.xavier_uniform(self.incLSTM.weight_ih)
+        init.xavier_uniform(self.incLSTM.weight_hh)
         self.incLSTM.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.incLSTM.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
@@ -39,8 +39,8 @@ class Decoder(nn.Module):
                                         out_features=hyperParams.hiddenSize,
                                         bias=True)
 
-        init.kaiming_uniform(self.linearLayer.weight)
-        init.kaiming_uniform(self.combineWordPos.weight)
+        init.xavier_uniform(self.linearLayer.weight)
+        init.xavier_uniform(self.combineWordPos.weight)
         self.combineWordPos.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                             numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 

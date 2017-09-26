@@ -1,4 +1,5 @@
 from instance import  Instance
+from common import wordtype
 import unicodedata
 import torch
 import re
@@ -48,7 +49,9 @@ class Reader:
                     inst.m_gold_pos.append('[' + str(count) + ',' + str(count + word_len) + ']' + label)
                     count += word_len
                     for idx in range(word_len):
-                        inst.m_chars.append(word[idx])
+                        char = word[idx]
+                        inst.m_chars.append(char)
+                        inst.m_char_types.append(wordtype(char))
                         if idx == 0:
                             inst.m_gold.append('SEP#' + label)
                             inst.m_pos.append(label)
@@ -67,6 +70,7 @@ class Reader:
                 if len(insts) == maxInst:
                     break
                 inst.m_char_size = len(inst.m_chars)
+                inst.m_char_type_size = len(inst.m_char_types)
                 inst.m_word_size = len(inst.m_words)
                 inst.m_bichar_size = len(inst.m_bichars)
                 inst.m_gold_size = len(inst.m_gold)

@@ -21,8 +21,8 @@ class Decoder(nn.Module):
         self.incLSTM = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                    hidden_size=hyperParams.rnnHiddenSize,
                                    bias=True)
-        init.kaiming_uniform(self.incLSTM.weight_ih)
-        init.kaiming_uniform(self.incLSTM.weight_hh)
+        init.xavier_uniform(self.incLSTM.weight_ih)
+        init.xavier_uniform(self.incLSTM.weight_hh)
         self.incLSTM.bias_hh.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                             numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
         self.incLSTM.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
@@ -39,8 +39,8 @@ class Decoder(nn.Module):
                                         out_features=hyperParams.hiddenSize,
                                         bias=True)
 
-        init.kaiming_uniform(self.linearLayer.weight)
-        init.kaiming_uniform(self.combineWordPos.weight)
+        init.xavier_uniform(self.linearLayer.weight)
+        init.xavier_uniform(self.combineWordPos.weight)
         self.combineWordPos.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                             numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
@@ -56,12 +56,13 @@ class Decoder(nn.Module):
             inst = insts[idx]
             s = state(inst, self.hyperParams)
             s.h, s.c = self.incLSTM(s.last_word_pos_emb, (s.h, s.c))
+            s.h = self.dropOut(s.h)
             sent_output = []
             real_char_num = inst.m_char_size
             for idy in range(char_num):
                 if idy < real_char_num:
                     #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
-                    v = torch.cat((self.dropOut(s.h), encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    v = torch.cat((s.h, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = self.linearLayer(v)
@@ -102,6 +103,7 @@ class Decoder(nn.Module):
             concat = torch.cat((state.last_pos_emb, state.last_word_emb), 1)
             state.last_word_pos_emb = self.dropOut(F.tanh(self.combineWordPos(concat)))
             state.h, state.c = self.incLSTM(state.last_word_pos_emb, (state.h, state.c))
+            state.h = self.dropOut(state.h)
 
         pos = action.find('#')
         if pos == -1:

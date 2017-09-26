@@ -42,7 +42,7 @@ class Encoder(nn.Module):
         self.linearLayer = nn.Linear(in_features= self.inputDim,
                                      out_features=hyperParams.hiddenSize,
                                      bias=True)
-        init.kaiming_uniform(self.linearLayer.weight)
+        init.xavier_uniform(self.linearLayer.weight)
         self.linearLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                             numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
@@ -56,7 +56,7 @@ class Encoder(nn.Module):
         for ws in self.bilstm.all_weights:
             for w in ws:
                 if len(w.size()) == 2:
-                    init.kaiming_uniform(w)
+                    init.xavier_uniform(w)
                 else:
                     w.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                     numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
