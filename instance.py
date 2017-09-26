@@ -18,6 +18,7 @@ class Instance:
         self.m_gold_pos = []
 
         self.m_char_indexes = []
+        self.m_char_type_indexes = []
 
         self.m_bichar_indexes = []
 

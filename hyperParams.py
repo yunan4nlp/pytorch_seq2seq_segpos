@@ -26,6 +26,11 @@ class HyperParams:
         self.wordUNKID = 0
         self.wordPaddingID = 0
 
+        self.charTypeEmbSize = 20
+        self.charTypeFineTune = True
+        #self.charEmbFile = ""
+        self.charTypePaddingID = 0
+
         self.bicharCutOff = 0
         self.bicharEmbSize = 200
         self.bicharFineTune = False
@@ -54,7 +59,7 @@ class HyperParams:
         self.reg = 1e-8 ##up
         self.maxInstance = 4
         self.gpuID = 1
-        self.batch = 1
+        self.batch = 2
         self.useCuda = False
 
         self.wordAlpha = Alphabet()

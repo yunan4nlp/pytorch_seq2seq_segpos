@@ -160,6 +160,12 @@ class Trainer:
                     bicharID = self.hyperParams.bicharUNKID
                 inst.m_bichar_indexes.append(bicharID)
 
+            for idx in range(inst.m_char_type_size):
+                charType = inst.m_char_types[idx]
+                charTypeID = self.hyperParams.charTypeAlpha.from_string(charType)
+                inst.m_char_type_indexes.append(charTypeID)
+
+
             for idx in range(inst.m_gold_size):
                 gold = inst.m_gold[idx]
                 goldID = self.hyperParams.labelAlpha.from_string(gold)
@@ -187,6 +193,7 @@ class Trainer:
         batch_word_feats = torch.autograd.Variable(torch.LongTensor(batch, max_word_size))
         batch_pos_feats = torch.autograd.Variable(torch.LongTensor(batch, max_word_size))
         batch_char_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
+        batch_char_type_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
         batch_bichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
         batch_gold_feats = torch.autograd.Variable(torch.LongTensor(max_gold_size * batch))
 
@@ -205,6 +212,12 @@ class Trainer:
                     batch_char_feats.data[idx][idy] = inst.m_char_indexes[idy]
                 else:
                     batch_char_feats.data[idx][idy] = self.hyperParams.charPaddingID
+            for idy in range(max_char_size):
+                if idy < inst.m_char_size:
+                    batch_char_type_feats.data[idx][idy] = inst.m_char_type_indexes[idy]
+                else:
+                    batch_char_type_feats.data[idx][idy] = self.hyperParams.charTypePaddingID
+
 
             for idy in range(max_bichar_size):
                 if idy < inst.m_bichar_size:
@@ -218,9 +231,9 @@ class Trainer:
                 else:
                     batch_gold_feats.data[idy + idx * max_gold_size] = 0
         if self.hyperParams.useCuda:
-            return batch_word_feats.cuda(self.hyperParams.gpuID), batch_char_feats.cuda(self.hyperParams.gpuID), batch_bichar_feats.cuda(self.hyperParams.gpuID), batch_gold_feats.cuda(self.hyperParams.gpuID), batch
+            return batch_char_type_feats.cuda(self.hyperParams.gpuID), batch_char_feats.cuda(self.hyperParams.gpuID), batch_bichar_feats.cuda(self.hyperParams.gpuID), batch_gold_feats.cuda(self.hyperParams.gpuID), batch
         else:
-            return batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
+            return batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
 
     def train(self, train_file, dev_file, test_file, model_file):
         self.hyperParams.show()
@@ -286,11 +299,11 @@ class Trainer:
                     end_pos = train_num
                 for idx in range(start_pos, end_pos):
                     insts.append(trainInsts[indexes[idx]])
-                batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
+                batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
                 #print(batch_gold)
                 maxCharSize = batch_char_feats.size()[1]
                 encoder_hidden = self.encoder.init_hidden(batch)
-                encoder_output, encoder_hidden = self.encoder(batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
+                encoder_output, encoder_hidden = self.encoder(batch_char_type_feats, batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
                 decoder_output, _ = self.decoder(insts, encoder_output, batch, True)
                 train_eval.clear()
                 for idx in range(batch):
@@ -339,9 +352,9 @@ class Trainer:
     def predict(self, inst):
         insts = []
         insts.append(inst)
-        batch_word_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
+        batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
         encoder_hidden = self.encoder.init_hidden(batch)
-        encoder_output, encoder_hidden = self.encoder(batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
+        encoder_output, encoder_hidden = self.encoder(batch_char_type_feats, batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
         decoder_output, state = self.decoder(insts, encoder_output, batch, False)
         return state
 

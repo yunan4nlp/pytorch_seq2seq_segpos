@@ -22,9 +22,15 @@ class Encoder(nn.Module):
         init.uniform(self.charEmb.weight,
                      a=-numpy.sqrt(3 /hyperParams.charEmbSize),
                      b=numpy.sqrt(3 / hyperParams.charEmbSize))
-
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
+
+        self.charTypeEmb = nn.Embedding(hyperParams.charTypeNum, hyperParams.charTypeEmbSize)
+        init.uniform(self.charTypeEmb.weight,
+                     a=-numpy.sqrt(3 / hyperParams.charTypeEmbSize),
+                     b=numpy.sqrt(3 / hyperParams.charTypeEmbSize))
+        self.charTypeDim = hyperParams.charTypeEmbSize
+        self.charTypeEmb.weight.requires_grad = True
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
         init.uniform(self.bicharEmb.weight,
@@ -37,7 +43,7 @@ class Encoder(nn.Module):
 
         self.dropOut = nn.Dropout(hyperParams.dropProb)
 
-        self.inputDim = self.extCharDim + self.charDim + self.extBiCharDim + self.bicharDim
+        self.inputDim = self.extCharDim + self.charDim + self.extBiCharDim + self.bicharDim + self.charTypeDim
         #self.inputDim = self.charDim + self.bicharDim
 
         self.leftLayer = nn.Linear(in_features= self.inputDim,
@@ -105,7 +111,8 @@ class Encoder(nn.Module):
             return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))
 
-    def forward(self, charIndexes, bicharIndexes, hidden, batch = 1):
+    def forward(self, charTypeIndexes, charIndexes, bicharIndexes, hidden, batch = 1):
+        charType = self.charTypeEmb(charTypeIndexes)
         extChar = self.extCharEmb(charIndexes)
         char = self.charEmb(charIndexes)
         extBiChar = self.extBiCharEmb(bicharIndexes)
@@ -131,10 +138,10 @@ class Encoder(nn.Module):
             leftBichar = torch.cat((leftBichar, bucketBichar), 1)
         else:
             leftBichar = bucketBichar
-        leftConcat = torch.cat((char, extChar, leftBichar, leftExtBichar), 2)
+        leftConcat = torch.cat((char, extChar, leftBichar, leftExtBichar, charType), 2)
         leftConcat = leftConcat.view(batch * char_num, self.inputDim)
 
-        rightConcat = torch.cat((char, extChar, biChar, extBiChar), 2)
+        rightConcat = torch.cat((char, extChar, biChar, extBiChar, charType), 2)
         #concat = torch.cat((char,  biChar), 2)
         rightConcat = rightConcat.view(batch * char_num, self.inputDim)
 
