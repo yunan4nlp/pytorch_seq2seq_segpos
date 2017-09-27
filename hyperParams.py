@@ -2,7 +2,9 @@ class HyperParams:
     def __init__(self):
         self.wordNum = 0
         self.charNum = 0
+        self.extCharNum = 0
         self.bicharNum = 0
+        self.extBicharNum = 0
         self.posNum = 0
         self.labelSize = 0
 
@@ -37,14 +39,18 @@ class HyperParams:
         self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\bichar.sample"
         #self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\bichar.vec"
         self.bicharUNKID = 0
+        self.extBicharUNKID = 0
         self.bicharPaddingID = 0
+        self.extBicharPaddingID = 0
 
         self.charCutOff = 0
         self.charEmbSize = 200
         self.charFineTune = False
         #self.charEmbFile = ""
         self.charUNKID = 0
+        self.extCharUNKID = 0
         self.charPaddingID = 0
+        self.extCharPaddingID = 0
         self.charEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\char.vec"
         #self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
 
@@ -63,18 +69,20 @@ class HyperParams:
         self.useCuda = False
 
         self.wordAlpha = Alphabet()
-        self.charAlpha = Alphabet()
         self.charTypeAlpha = Alphabet()
+
         self.bicharAlpha = Alphabet()
+        self.charAlpha = Alphabet()
+        self.extBicharAlpha = Alphabet()
+        self.extCharAlpha = Alphabet()
 
         self.labelAlpha = Alphabet()
         self.posAlpha = Alphabet()
 
     def show(self):
-        print('wordCutOff = ', self.wordCutOff)
-        print('wordEmbSize = ', self.wordEmbSize)
-        print('wordFineTune = ', self.wordFineTune)
-        print('wordFile = ', self.wordEmbFile)
+
+        print("charTypeEmbSize = ", self.charTypeEmbSize)
+        print("charTypeFineTune = ", self.charTypeFineTune)
 
         print('charCutOff = ', self.charCutOff)
         print('charEmbSize = ', self.charEmbSize)
@@ -143,6 +151,15 @@ class Alphabet:
             if  elem_state[key] > cutoff:
                 self.from_string(key)
         self.set_fixed_flag(True)
+
+    def initial_from_pretrain(self, pretrain_file, unk, padding):
+        f = open(pretrain_file, encoding='utf-8')
+        for line in f.readlines():
+            info = line.split(" ")
+            self.from_string(info[0])
+        f.close()
+        self.from_string(unk)
+        self.from_string(padding)
 
     def write(self, path):
         outf = open(path, encoding='utf-8', mode='w')

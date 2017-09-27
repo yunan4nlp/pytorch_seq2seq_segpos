@@ -18,9 +18,11 @@ class Instance:
         self.m_gold_pos = []
 
         self.m_char_indexes = []
+        self.m_extchar_indexes = []
         self.m_char_type_indexes = []
 
         self.m_bichar_indexes = []
+        self.m_extbichar_indexes = []
 
         self.m_word_indexes = []
         self.m_pos_indexes = []
@@ -71,6 +73,27 @@ class Instance:
         for p in predict_pos:
             if p in self.m_gold_pos:
                 pos_eval.correct_num += 1
+
+class BatchFeats:
+    def __init__(self):
+        self.batch = 0
+        self.pos_feats = 0
+        self.char_feats = 0
+        self.extchar_feats = 0
+        self.char_type_feats = 0
+        self.bichar_feats = 0
+        self.extbichar_feats = 0
+        self.gold_feats = 0
+
+    def cuda(self,gpuID):
+        self.pos_feats = self.pos_feats.cuda(gpuID)
+        self.char_feats = self.char_feats.cuda(gpuID)
+        self.extchar_feats = self.extchar_feats.cuda(gpuID)
+        self.char_type_feats = self.char_type_feats.cuda(gpuID)
+        self.bichar_feats = self.bichar_feats.cuda(gpuID)
+        self.extbichar_feats = self.extbichar_feats.cuda(gpuID)
+        self.gold_feats = self.gold_feats.cuda(gpuID)
+
 # class Example:
 #     def __init__(self):
 #         self.m_char_indexes = []

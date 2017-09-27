@@ -12,10 +12,10 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.hyperParams = hyperParams
         reader = Reader()
-        self.extCharEmb, self.extCharDim = reader.load_pretrain(hyperParams.charEmbFile, hyperParams.charAlpha, hyperParams.unk)
+        self.extCharEmb, self.extCharDim = reader.load_pretrain(hyperParams.charEmbFile, hyperParams.extCharAlpha, hyperParams.unk)
         self.extCharEmb.weight.requires_grad = False
 
-        self.extBiCharEmb, self.extBiCharDim = reader.load_pretrain(hyperParams.bicharEmbFile, hyperParams.bicharAlpha, hyperParams.unk)
+        self.extBiCharEmb, self.extBiCharDim = reader.load_pretrain(hyperParams.bicharEmbFile, hyperParams.extBicharAlpha, hyperParams.unk)
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
@@ -111,15 +111,23 @@ class Encoder(nn.Module):
             return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))
 
-    def forward(self, charTypeIndexes, charIndexes, bicharIndexes, hidden, batch = 1):
+    def forward(self, feats):
+        batch = feats.batch
+        charTypeIndexes = feats.char_type_feats
+        charIndexes = feats.char_feats
+        bicharIndexes = feats.bichar_feats
+        extCharIndexes = feats.extchar_feats
+        extBicharIndexes = feats.extbichar_feats
+
         charType = self.charTypeEmb(charTypeIndexes)
-        extChar = self.extCharEmb(charIndexes)
+        extChar = self.extCharEmb(extCharIndexes)
         char = self.charEmb(charIndexes)
-        extBiChar = self.extBiCharEmb(bicharIndexes)
+        extBiChar = self.extBiCharEmb(extBicharIndexes)
         biChar = self.bicharEmb(bicharIndexes)
 
         char_num = extChar.size()[1]
 
+        charType = self.dropOut(charType)
         extChar = self.dropOut(extChar)
         char = self.dropOut(char)
         extBiChar = self.dropOut(extBiChar)
@@ -170,5 +178,5 @@ class Encoder(nn.Module):
         rightLSTMoutput = torch.cat(rightLSTMoutput, 0).permute(1, 0, 2)
 
         output = torch.cat((leftLSTMoutput, rightLSTMoutput), 2)
-        return output, hidden
+        return output
 

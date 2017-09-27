@@ -1,5 +1,6 @@
 from read import Reader
 from hyperParams import HyperParams
+from instance import BatchFeats
 from optparse import OptionParser
 from encoder2 import Encoder
 from decoder2 import Decoder
@@ -9,6 +10,7 @@ import torch.nn
 import torch.autograd
 import torch.nn.functional
 import random
+
 
 class Trainer:
     def __init__(self):
@@ -49,8 +51,8 @@ class Trainer:
                 else:
                     self.pos_state[pos] += 1
 
-        self.addTestAlphabet(devInsts)
-        self.addTestAlphabet(testInsts)
+        #self.addTestAlphabet(devInsts)
+        #self.addTestAlphabet(testInsts)
 
         self.chartype_state['U'] = 1
         self.chartype_state['u'] = 1
@@ -80,20 +82,36 @@ class Trainer:
         self.hyperParams.bicharAlpha.initial(self.bichar_state, self.hyperParams.bicharCutOff)
         self.hyperParams.posAlpha.initial(self.pos_state, 0)
 
+        self.hyperParams.extCharAlpha.initial_from_pretrain(self.hyperParams.charEmbFile,
+                                                            self.hyperParams.unk,
+                                                            self.hyperParams.padding)
+        self.hyperParams.extBicharAlpha.initial_from_pretrain(self.hyperParams.bicharEmbFile,
+                                                              self.hyperParams.unk,
+                                                              self.hyperParams.padding)
+
 
         self.hyperParams.wordUNKID = self.hyperParams.wordAlpha.from_string(self.hyperParams.unk)
         self.hyperParams.charUNKID = self.hyperParams.charAlpha.from_string(self.hyperParams.unk)
+        self.hyperParams.extCharUNKID = self.hyperParams.extCharAlpha.from_string(self.hyperParams.unk)
         self.hyperParams.posUNKID = self.hyperParams.posAlpha.from_string(self.hyperParams.unk)
         self.hyperParams.bicharUNKID = self.hyperParams.bicharAlpha.from_string(self.hyperParams.unk)
+        self.hyperParams.extBicharUNKID = self.hyperParams.extBicharAlpha.from_string(self.hyperParams.unk)
+
         self.hyperParams.wordPaddingID = self.hyperParams.wordAlpha.from_string(self.hyperParams.padding)
         self.hyperParams.charPaddingID = self.hyperParams.charAlpha.from_string(self.hyperParams.padding)
+        self.hyperParams.extCharPaddingID = self.hyperParams.extCharAlpha.from_string(self.hyperParams.padding)
         self.hyperParams.bicharPaddingID = self.hyperParams.bicharAlpha.from_string(self.hyperParams.padding)
+        self.hyperParams.extBicharPaddingID = self.hyperParams.extBicharAlpha.from_string(self.hyperParams.padding)
+
         self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(self.hyperParams.padding)
         self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(self.hyperParams.padding)
 
         self.hyperParams.wordAlpha.set_fixed_flag(True)
         self.hyperParams.charAlpha.set_fixed_flag(True)
         self.hyperParams.bicharAlpha.set_fixed_flag(True)
+        self.hyperParams.extCharAlpha.set_fixed_flag(True)
+        self.hyperParams.extBicharAlpha.set_fixed_flag(True)
+
         self.hyperParams.labelAlpha.set_fixed_flag(True)
         self.hyperParams.posAlpha.set_fixed_flag(True)
         self.hyperParams.charTypeAlpha.set_fixed_flag(True)
@@ -101,6 +119,9 @@ class Trainer:
         self.hyperParams.wordNum = self.hyperParams.wordAlpha.m_size
         self.hyperParams.charNum = self.hyperParams.charAlpha.m_size
         self.hyperParams.bicharNum = self.hyperParams.bicharAlpha.m_size
+        self.hyperParams.extCharNum = self.hyperParams.extCharAlpha.m_size
+        self.hyperParams.extBicharNum = self.hyperParams.extBicharAlpha.m_size
+
         self.hyperParams.labelSize = self.hyperParams.labelAlpha.m_size
         self.hyperParams.posNum = self.hyperParams.posAlpha.m_size
         self.hyperParams.charTypeNum = self.hyperParams.charTypeAlpha.m_size
@@ -109,7 +130,9 @@ class Trainer:
         print("label size: ", self.hyperParams.labelSize)
         print("word size: ", self.hyperParams.wordNum)
         print("char size: ", self.hyperParams.charNum)
+        print("ext char size: ", self.hyperParams.extCharNum)
         print("bichar size: ", self.hyperParams.bicharNum)
+        print("ext bichar size: ", self.hyperParams.extBicharNum)
         print("pos size: ", self.hyperParams.posNum)
         print("char type size: ", self.hyperParams.charTypeNum)
 
@@ -149,16 +172,24 @@ class Trainer:
             for idx in range(inst.m_char_size):
                 char = inst.m_chars[idx]
                 charID = self.hyperParams.charAlpha.from_string(char)
+                extCharID = self.hyperParams.extCharAlpha.from_string(char)
                 if(charID == -1):
                     charID = self.hyperParams.charUNKID
+                if(extCharID == -1):
+                    extCharID = self.hyperParams.extCharUNKID
                 inst.m_char_indexes.append(charID)
+                inst.m_extchar_indexes.append(extCharID)
 
             for idx in range(inst.m_bichar_size):
                 bichar = inst.m_bichars[idx]
                 bicharID = self.hyperParams.bicharAlpha.from_string(bichar)
+                extBicharID = self.hyperParams.extBicharAlpha.from_string(bichar)
                 if(bicharID == -1):
                     bicharID = self.hyperParams.bicharUNKID
+                if(extBicharID == -1):
+                    extBicharID = self.hyperParams.extBicharUNKID
                 inst.m_bichar_indexes.append(bicharID)
+                inst.m_extbichar_indexes.append(extBicharID)
 
             for idx in range(inst.m_char_type_size):
                 charType = inst.m_char_types[idx]
@@ -190,50 +221,67 @@ class Trainer:
             bichar_size = inst.m_bichar_size
             if bichar_size > max_bichar_size:
                 max_bichar_size = bichar_size
-        batch_word_feats = torch.autograd.Variable(torch.LongTensor(batch, max_word_size))
         batch_pos_feats = torch.autograd.Variable(torch.LongTensor(batch, max_word_size))
         batch_char_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
+        batch_extchar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
         batch_char_type_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
         batch_bichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
+        batch_extbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
         batch_gold_feats = torch.autograd.Variable(torch.LongTensor(max_gold_size * batch))
 
         for idx in range(batch):
             inst = insts[idx]
             for idy in range(max_word_size):
                 if idy < inst.m_word_size:
-                    batch_word_feats.data[idx][idy] = inst.m_word_indexes[idy]
                     batch_pos_feats.data[idx][idy] = inst.m_pos_indexes[idy]
                 else:
-                    batch_word_feats.data[idx][idy] = self.hyperParams.wordPaddingID
                     batch_pos_feats.data[idx][idy] = self.hyperParams.posPaddingID
 
             for idy in range(max_char_size):
                 if idy < inst.m_char_size:
                     batch_char_feats.data[idx][idy] = inst.m_char_indexes[idy]
+                    batch_extchar_feats.data[idx][idy] = inst.m_extchar_indexes[idy]
                 else:
                     batch_char_feats.data[idx][idy] = self.hyperParams.charPaddingID
+                    batch_extchar_feats.data[idx][idy] = self.hyperParams.extCharPaddingID
+
             for idy in range(max_char_size):
                 if idy < inst.m_char_size:
                     batch_char_type_feats.data[idx][idy] = inst.m_char_type_indexes[idy]
                 else:
                     batch_char_type_feats.data[idx][idy] = self.hyperParams.charTypePaddingID
 
-
             for idy in range(max_bichar_size):
                 if idy < inst.m_bichar_size:
                     batch_bichar_feats.data[idx][idy] = inst.m_bichar_indexes[idy]
+                    batch_extbichar_feats.data[idx][idy] = inst.m_extbichar_indexes[idy]
                 else:
                     batch_bichar_feats.data[idx][idy] = self.hyperParams.bicharPaddingID
+                    batch_extbichar_feats.data[idx][idy] = self.hyperParams.extBicharPaddingID
 
             for idy in range(max_gold_size):
                 if idy < inst.m_gold_size:
                     batch_gold_feats.data[idy + idx * max_gold_size] = inst.m_gold_indexes[idy]
                 else:
                     batch_gold_feats.data[idy + idx * max_gold_size] = 0
+
+        feats = BatchFeats()
+        feats.batch = batch
+        feats.char_feats = batch_char_feats
+        feats.extchar_feats = batch_extchar_feats
+        feats.bichar_feats = batch_bichar_feats
+        feats.extbichar_feats = batch_extbichar_feats
+        feats.pos_feats = batch_pos_feats
+        feats.char_type_feats = batch_char_type_feats
+        feats.gold_feats = batch_gold_feats
+
         if self.hyperParams.useCuda:
-            return batch_char_type_feats.cuda(self.hyperParams.gpuID), batch_char_feats.cuda(self.hyperParams.gpuID), batch_bichar_feats.cuda(self.hyperParams.gpuID), batch_gold_feats.cuda(self.hyperParams.gpuID), batch
-        else:
-            return batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
+            feats.cuda(self.hyperParams.gpuID)
+        return feats
+        # if self.hyperParams.useCuda:
+        #     return batch_char_type_feats.cuda(self.hyperParams.gpuID), batch_char_feats.cuda(self.hyperParams.gpuID), batch_bichar_feats.cuda(self.hyperParams.gpuID), batch_gold_feats.cuda(self.hyperParams.gpuID), batch
+        # else:
+        #     return batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold_feats, batch
 
     def train(self, train_file, dev_file, test_file, model_file):
         self.hyperParams.show()
@@ -299,21 +347,21 @@ class Trainer:
                     end_pos = train_num
                 for idx in range(start_pos, end_pos):
                     insts.append(trainInsts[indexes[idx]])
-                batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
+                feats = self.getBatchFeatLabel(insts)
                 #print(batch_gold)
-                maxCharSize = batch_char_feats.size()[1]
-                encoder_hidden = self.encoder.init_hidden(batch)
-                encoder_output, encoder_hidden = self.encoder(batch_char_type_feats, batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
-                decoder_output, _ = self.decoder(insts, encoder_output, batch, True)
+                maxCharSize = feats.char_feats.size()[1]
+                #encoder_hidden = self.encoder.init_hidden(feats.batch)
+                encoder_output = self.encoder(feats)
+                decoder_output, _ = self.decoder(insts, encoder_output, feats.batch, True)
                 train_eval.clear()
-                for idx in range(batch):
+                for idx in range(feats.batch):
                     inst = insts[idx]
                     for idy in range(inst.m_char_size):
                         actionID = getMaxIndex(self.hyperParams, decoder_output[idx * maxCharSize + idy])
                         if actionID == inst.m_gold_indexes[idy]:
                             train_eval.correct_num += 1
                     train_eval.gold_num += inst.m_char_size
-                loss = torch.nn.functional.nll_loss(decoder_output, batch_gold)
+                loss = torch.nn.functional.nll_loss(decoder_output, feats.gold_feats)
                 print("current: ", updateIter + 1, "cost: ", loss.data[0], "correct: ", train_eval.acc())
                 loss.backward()
 
@@ -352,10 +400,9 @@ class Trainer:
     def predict(self, inst):
         insts = []
         insts.append(inst)
-        batch_char_type_feats, batch_char_feats, batch_bichar_feats, batch_gold, batch = self.getBatchFeatLabel(insts)
-        encoder_hidden = self.encoder.init_hidden(batch)
-        encoder_output, encoder_hidden = self.encoder(batch_char_type_feats, batch_char_feats, batch_bichar_feats, encoder_hidden, batch)
-        decoder_output, state = self.decoder(insts, encoder_output, batch, False)
+        feats = self.getBatchFeatLabel(insts)
+        encoder_output = self.encoder(feats)
+        decoder_output, state = self.decoder(insts, encoder_output, feats.batch, False)
         return state
 
 parser = OptionParser()
