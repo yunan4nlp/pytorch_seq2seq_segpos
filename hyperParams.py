@@ -51,7 +51,7 @@ class HyperParams:
         self.extCharUNKID = 0
         self.charPaddingID = 0
         self.extCharPaddingID = 0
-        self.charEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\char.vec"
+        self.charEmbFile = "C:\\Users\\yunan\\Desktop\\experiments-standard\\char.vec"
         #self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
 
         self.posEmbSize = 100

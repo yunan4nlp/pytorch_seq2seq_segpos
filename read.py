@@ -92,7 +92,7 @@ class Reader:
                      b=numpy.sqrt(3 / embDim))
         oov_emb = torch.zeros(1, embDim).type(torch.FloatTensor)
         for line in allLines:
-            info = line.strip().split(' ')
+            info = line.split(' ')
             wordID = alpha.from_string(info[0])
             if wordID >= 0:
                 indexs.append(wordID)
@@ -114,6 +114,8 @@ class Reader:
         for idx in range(alpha.m_size):
             if idx not in indexs:
                 oov += 1
+                str = alpha.from_id(idx)
+                print("str:", str)
         print("OOV Num: ", oov, "Total Num: ", alpha.m_size,
               "OOV Ratio: ", oov / alpha.m_size)
         print("OOV ", unk, "use avg value initialize")
