@@ -8,8 +8,6 @@ class HyperParams:
         self.posNum = 0
         self.labelSize = 0
 
-        self.unk = '-unk-'
-        self.padding = '-padding-'
 
         self.start = '-start-'
         self.end = '-end-'
@@ -63,9 +61,9 @@ class HyperParams:
         self.thread = 1
         self.learningRate = 0.001##down
         self.reg = 1e-8 ##up
-        self.maxInstance = 4
+        self.maxInstance = 3
         self.gpuID = 1
-        self.batch = 2
+        self.batch = 1
         self.useCuda = False
 
         self.wordAlpha = Alphabet()

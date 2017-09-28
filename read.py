@@ -1,5 +1,6 @@
 from instance import  Instance
 from common import wordtype
+from common import nullkey
 import unicodedata
 import torch
 import re
@@ -57,11 +58,18 @@ class Reader:
                             inst.m_pos.append(label)
                         else:
                             inst.m_gold.append('APP')
-                for idx in range(len(inst.m_chars)):
+                char_num = len(inst.m_chars)
+                for idx in range(char_num):
                     if idx - 1 >= 0:
-                        inst.m_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
+                        inst.m_left_bichars.append(inst.m_chars[idx - 1] + inst.m_chars[idx])
                     else:
-                        inst.m_bichars.append('<s>' + inst.m_chars[idx])
+                        inst.m_left_bichars.append(nullkey + inst.m_chars[idx])
+
+                    if idx + 1 < char_num:
+                        inst.m_right_bichars.append(inst.m_chars[idx] + inst.m_chars[idx + 1])
+                    else:
+                        inst.m_right_bichars.append(inst.m_chars[idx] + nullkey)
+
                 # for idx in range(len(inst.m_chars)):
                 #     if idx + 1 < len(inst.m_chars):
                 #         inst.m_bichars.append(inst.m_chars[idx] + inst.m_chars[idx + 1])
@@ -72,7 +80,7 @@ class Reader:
                 inst.m_char_size = len(inst.m_chars)
                 inst.m_char_type_size = len(inst.m_char_types)
                 inst.m_word_size = len(inst.m_words)
-                inst.m_bichar_size = len(inst.m_bichars)
+                inst.m_bichar_size = len(inst.m_left_bichars)
                 inst.m_gold_size = len(inst.m_gold)
                 insts.append(inst)
             else:

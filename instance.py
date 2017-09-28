@@ -7,7 +7,9 @@ class Instance:
         self.m_char_types = []
         self.m_char_type_size = 0
 
-        self.m_bichars = []
+        self.m_right_bichars = []
+        self.m_left_bichars = []
+
         self.m_bichar_size = 0
         self.m_words = []
         self.m_word_size = 0
@@ -21,8 +23,11 @@ class Instance:
         self.m_extchar_indexes = []
         self.m_char_type_indexes = []
 
-        self.m_bichar_indexes = []
         self.m_extbichar_indexes = []
+        self.m_leftbichar_indexes = []
+        self.m_leftextbichar_indexes = []
+        self.m_rightbichar_indexes = []
+        self.m_rightextbichar_indexes = []
 
         self.m_word_indexes = []
         self.m_pos_indexes = []
@@ -81,8 +86,12 @@ class BatchFeats:
         self.char_feats = 0
         self.extchar_feats = 0
         self.char_type_feats = 0
-        self.bichar_feats = 0
-        self.extbichar_feats = 0
+
+        self.leftbichar_feats = 0
+        self.rightbichar_feats = 0
+        self.leftextbichar_feats = 0
+        self.rightextbichar_feats = 0
+
         self.gold_feats = 0
 
     def cuda(self,gpuID):
@@ -90,9 +99,11 @@ class BatchFeats:
         self.char_feats = self.char_feats.cuda(gpuID)
         self.extchar_feats = self.extchar_feats.cuda(gpuID)
         self.char_type_feats = self.char_type_feats.cuda(gpuID)
-        self.bichar_feats = self.bichar_feats.cuda(gpuID)
-        self.extbichar_feats = self.extbichar_feats.cuda(gpuID)
         self.gold_feats = self.gold_feats.cuda(gpuID)
+        self.leftbichar_feats = self.leftbichar_feats.cuda(gpuID)
+        self.rightbichar_feats = self.rightbichar_feats.cuda(gpuID)
+        self.leftextbichar_feats = self.leftextbichar_feats.cuda(gpuID)
+        self.rightextbichar_feats = self.rightextbichar_feats.cuda(gpuID)
 
 # class Example:
 #     def __init__(self):

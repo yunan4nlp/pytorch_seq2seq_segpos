@@ -1,4 +1,5 @@
 from read import Reader
+from common import unkkey
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,10 +13,10 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.hyperParams = hyperParams
         reader = Reader()
-        self.extCharEmb, self.extCharDim = reader.load_pretrain(hyperParams.charEmbFile, hyperParams.extCharAlpha, hyperParams.unk)
+        self.extCharEmb, self.extCharDim = reader.load_pretrain(hyperParams.charEmbFile, hyperParams.extCharAlpha, unkkey)
         self.extCharEmb.weight.requires_grad = False
 
-        self.extBiCharEmb, self.extBiCharDim = reader.load_pretrain(hyperParams.bicharEmbFile, hyperParams.extBicharAlpha, hyperParams.unk)
+        self.extBiCharEmb, self.extBiCharDim = reader.load_pretrain(hyperParams.bicharEmbFile, hyperParams.extBicharAlpha, unkkey)
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
@@ -83,18 +84,6 @@ class Encoder(nn.Module):
         self.lstm_right.bias_ih.data.uniform_(-numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)),
                                               numpy.sqrt(6 / (hyperParams.rnnHiddenSize + 1)))
 
-    def init_bucket_extbichar(self, batch = 1):
-        if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.extBiCharDim)).cuda(self.hyperParams.gpuID))
-        else:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.extBiCharDim)))
-
-    def init_bucket_bichar(self, batch = 1):
-        if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.hyperParams.bicharEmbSize)).cuda(self.hyperParams.gpuID))
-        else:
-            return (torch.autograd.Variable(torch.zeros(batch, 1, self.hyperParams.bicharEmbSize)))
-
     def init_cell_hidden(self, batch = 1):
         if self.hyperParams.useCuda:
             return (torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID),
@@ -103,54 +92,40 @@ class Encoder(nn.Module):
             return (torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)),
                     torch.autograd.Variable(torch.zeros(batch, self.hyperParams.rnnHiddenSize)))
 
-    def init_hidden(self, batch = 1):
-        if self.hyperParams.useCuda:
-            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID),
-                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)).cuda(self.hyperParams.gpuID))
-        else:
-            return (torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)),
-                    torch.autograd.Variable(torch.zeros(2, batch, self.hyperParams.rnnHiddenSize)))
-
     def forward(self, feats):
         batch = feats.batch
         charTypeIndexes = feats.char_type_feats
         charIndexes = feats.char_feats
-        bicharIndexes = feats.bichar_feats
+        leftbicharIndexes = feats.leftbichar_feats
+        rightbicharIndexes = feats.rightbichar_feats
         extCharIndexes = feats.extchar_feats
-        extBicharIndexes = feats.extbichar_feats
+        leftextbicharIndexes = feats.leftextbichar_feats
+        rightextbicharIndexes = feats.rightextbichar_feats
 
         charType = self.charTypeEmb(charTypeIndexes)
         extChar = self.extCharEmb(extCharIndexes)
         char = self.charEmb(charIndexes)
-        extBiChar = self.extBiCharEmb(extBicharIndexes)
-        biChar = self.bicharEmb(bicharIndexes)
+
+        leftBichar = self.bicharEmb(leftbicharIndexes)
+        rightBichar = self.bicharEmb(rightbicharIndexes)
+        leftExtBichar = self.extBiCharEmb(leftextbicharIndexes)
+        rightExtBichar = self.extBiCharEmb(rightextbicharIndexes)
 
         char_num = extChar.size()[1]
 
         charType = self.dropOut(charType)
         extChar = self.dropOut(extChar)
         char = self.dropOut(char)
-        extBiChar = self.dropOut(extBiChar)
-        biChar = self.dropOut(biChar)
 
-        bucketExtbichar = self.init_bucket_extbichar(batch)
-        if char_num > 1:
-            leftExtBichar = torch.cat(torch.split(extBiChar, 1, 1)[1:], 1)
-            leftExtBichar = torch.cat((leftExtBichar, bucketExtbichar), 1)
-        else:
-            leftExtBichar = bucketExtbichar
+        leftBichar = self.dropOut(leftBichar)
+        rightBichar = self.dropOut(rightBichar)
+        leftExtBichar = self.dropOut(leftExtBichar)
+        rightExtBichar = self.dropOut(rightExtBichar)
 
-        bucketBichar = self.init_bucket_bichar(batch)
-        if char_num > 1:
-            leftBichar = torch.cat(torch.split(biChar, 1, 1)[1:], 1)
-            leftBichar = torch.cat((leftBichar, bucketBichar), 1)
-        else:
-            leftBichar = bucketBichar
         leftConcat = torch.cat((char, extChar, leftBichar, leftExtBichar, charType), 2)
         leftConcat = leftConcat.view(batch * char_num, self.inputDim)
 
-        rightConcat = torch.cat((char, extChar, biChar, extBiChar, charType), 2)
-        #concat = torch.cat((char,  biChar), 2)
+        rightConcat = torch.cat((char, extChar, rightBichar, rightExtBichar, charType), 2)
         rightConcat = rightConcat.view(batch * char_num, self.inputDim)
 
         leftNoLinear = self.dropOut(F.tanh(self.leftLayer(leftConcat)))

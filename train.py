@@ -5,6 +5,8 @@ from optparse import OptionParser
 from encoder2 import Encoder
 from decoder2 import Decoder
 from common import  getMaxIndex
+from common import  paddingkey
+from common import  unkkey
 from eval import Eval
 import torch.nn
 import torch.autograd
@@ -36,11 +38,17 @@ class Trainer:
                 else:
                     self.char_state[c] +=1
 
-            for bc in inst.m_bichars:
+            for bc in inst.m_left_bichars:
                 if bc not in self.bichar_state:
                     self.bichar_state[bc] = 1
                 else:
                     self.bichar_state[bc] += 1
+            bc = inst.m_right_bichars[-1]
+            if bc not in self.bichar_state:
+                self.bichar_state[bc] = 1
+            else:
+                self.bichar_state[bc] += 1
+
 
             for l in inst.m_gold:
                 self.hyperParams.labelAlpha.from_string(l)
@@ -61,21 +69,21 @@ class Trainer:
         self.chartype_state['p'] = 1
         self.chartype_state['d'] = 1
         self.chartype_state['o'] = 1
-        self.chartype_state[self.hyperParams.padding] = 1
+        self.chartype_state[paddingkey] = 1
 
         self.hyperParams.charTypeAlpha.initial(self.chartype_state)
 
-        self.word_state[self.hyperParams.unk] = self.hyperParams.wordCutOff + 1
-        self.word_state[self.hyperParams.padding] = self.hyperParams.wordCutOff + 1
+        self.word_state[unkkey] = self.hyperParams.wordCutOff + 1
+        self.word_state[paddingkey] = self.hyperParams.wordCutOff + 1
 
-        self.char_state[self.hyperParams.unk] = self.hyperParams.charCutOff + 1
-        self.char_state[self.hyperParams.padding] = self.hyperParams.charCutOff + 1
+        self.char_state[unkkey] = self.hyperParams.charCutOff + 1
+        self.char_state[paddingkey] = self.hyperParams.charCutOff + 1
 
-        self.bichar_state[self.hyperParams.unk] = self.hyperParams.bicharCutOff + 1
-        self.bichar_state[self.hyperParams.padding] = self.hyperParams.bicharCutOff + 1
+        self.bichar_state[unkkey] = self.hyperParams.bicharCutOff + 1
+        self.bichar_state[paddingkey] = self.hyperParams.bicharCutOff + 1
 
-        self.pos_state[self.hyperParams.unk] = 1
-        self.pos_state[self.hyperParams.padding] = 1
+        self.pos_state[unkkey] = 1
+        self.pos_state[paddingkey] = 1
 
         self.hyperParams.wordAlpha.initial(self.word_state, self.hyperParams.wordCutOff)
         self.hyperParams.charAlpha.initial(self.char_state, self.hyperParams.charCutOff)
@@ -83,28 +91,28 @@ class Trainer:
         self.hyperParams.posAlpha.initial(self.pos_state, 0)
 
         self.hyperParams.extCharAlpha.initial_from_pretrain(self.hyperParams.charEmbFile,
-                                                            self.hyperParams.unk,
-                                                            self.hyperParams.padding)
+                                                            unkkey,
+                                                            paddingkey)
         self.hyperParams.extBicharAlpha.initial_from_pretrain(self.hyperParams.bicharEmbFile,
-                                                              self.hyperParams.unk,
-                                                              self.hyperParams.padding)
+                                                              unkkey,
+                                                              paddingkey)
 
 
-        self.hyperParams.wordUNKID = self.hyperParams.wordAlpha.from_string(self.hyperParams.unk)
-        self.hyperParams.charUNKID = self.hyperParams.charAlpha.from_string(self.hyperParams.unk)
-        self.hyperParams.extCharUNKID = self.hyperParams.extCharAlpha.from_string(self.hyperParams.unk)
-        self.hyperParams.posUNKID = self.hyperParams.posAlpha.from_string(self.hyperParams.unk)
-        self.hyperParams.bicharUNKID = self.hyperParams.bicharAlpha.from_string(self.hyperParams.unk)
-        self.hyperParams.extBicharUNKID = self.hyperParams.extBicharAlpha.from_string(self.hyperParams.unk)
+        self.hyperParams.wordUNKID = self.hyperParams.wordAlpha.from_string(unkkey)
+        self.hyperParams.charUNKID = self.hyperParams.charAlpha.from_string(unkkey)
+        self.hyperParams.extCharUNKID = self.hyperParams.extCharAlpha.from_string(unkkey)
+        self.hyperParams.posUNKID = self.hyperParams.posAlpha.from_string(unkkey)
+        self.hyperParams.bicharUNKID = self.hyperParams.bicharAlpha.from_string(unkkey)
+        self.hyperParams.extBicharUNKID = self.hyperParams.extBicharAlpha.from_string(unkkey)
 
-        self.hyperParams.wordPaddingID = self.hyperParams.wordAlpha.from_string(self.hyperParams.padding)
-        self.hyperParams.charPaddingID = self.hyperParams.charAlpha.from_string(self.hyperParams.padding)
-        self.hyperParams.extCharPaddingID = self.hyperParams.extCharAlpha.from_string(self.hyperParams.padding)
-        self.hyperParams.bicharPaddingID = self.hyperParams.bicharAlpha.from_string(self.hyperParams.padding)
-        self.hyperParams.extBicharPaddingID = self.hyperParams.extBicharAlpha.from_string(self.hyperParams.padding)
+        self.hyperParams.wordPaddingID = self.hyperParams.wordAlpha.from_string(paddingkey)
+        self.hyperParams.charPaddingID = self.hyperParams.charAlpha.from_string(paddingkey)
+        self.hyperParams.extCharPaddingID = self.hyperParams.extCharAlpha.from_string(paddingkey)
+        self.hyperParams.bicharPaddingID = self.hyperParams.bicharAlpha.from_string(paddingkey)
+        self.hyperParams.extBicharPaddingID = self.hyperParams.extBicharAlpha.from_string(paddingkey)
 
-        self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(self.hyperParams.padding)
-        self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(self.hyperParams.padding)
+        self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(paddingkey)
+        self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(paddingkey)
 
         self.hyperParams.wordAlpha.set_fixed_flag(True)
         self.hyperParams.charAlpha.set_fixed_flag(True)
@@ -181,15 +189,26 @@ class Trainer:
                 inst.m_extchar_indexes.append(extCharID)
 
             for idx in range(inst.m_bichar_size):
-                bichar = inst.m_bichars[idx]
-                bicharID = self.hyperParams.bicharAlpha.from_string(bichar)
-                extBicharID = self.hyperParams.extBicharAlpha.from_string(bichar)
-                if(bicharID == -1):
-                    bicharID = self.hyperParams.bicharUNKID
-                if(extBicharID == -1):
-                    extBicharID = self.hyperParams.extBicharUNKID
-                inst.m_bichar_indexes.append(bicharID)
-                inst.m_extbichar_indexes.append(extBicharID)
+                leftbichar = inst.m_left_bichars[idx]
+                leftbicharID = self.hyperParams.bicharAlpha.from_string(leftbichar)
+                leftextBicharID = self.hyperParams.extBicharAlpha.from_string(leftbichar)
+                if(leftbicharID == -1):
+                    leftbicharID = self.hyperParams.bicharUNKID
+                if(leftextBicharID == -1):
+                    leftextBicharID = self.hyperParams.extBicharUNKID
+                inst.m_leftbichar_indexes.append(leftbicharID)
+                inst.m_leftextbichar_indexes.append(leftextBicharID)
+
+            for idx in range(inst.m_bichar_size):
+                rightbichar = inst.m_right_bichars[idx]
+                rightbicharID = self.hyperParams.bicharAlpha.from_string(rightbichar)
+                rightextBicharID = self.hyperParams.extBicharAlpha.from_string(rightbichar)
+                if(rightbicharID == -1):
+                    rightbicharID = self.hyperParams.bicharUNKID
+                if(rightextBicharID == -1):
+                    rightextBicharID = self.hyperParams.extBicharUNKID
+                inst.m_rightbichar_indexes.append(rightbicharID)
+                inst.m_rightextbichar_indexes.append(rightextBicharID)
 
             for idx in range(inst.m_char_type_size):
                 charType = inst.m_char_types[idx]
@@ -225,8 +244,10 @@ class Trainer:
         batch_char_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
         batch_extchar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
         batch_char_type_feats = torch.autograd.Variable(torch.LongTensor(batch, max_char_size))
-        batch_bichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
-        batch_extbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
+        batch_leftbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
+        batch_leftextbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
+        batch_rightbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
+        batch_rightextbichar_feats = torch.autograd.Variable(torch.LongTensor(batch, max_bichar_size))
         batch_gold_feats = torch.autograd.Variable(torch.LongTensor(max_gold_size * batch))
 
         for idx in range(batch):
@@ -253,11 +274,19 @@ class Trainer:
 
             for idy in range(max_bichar_size):
                 if idy < inst.m_bichar_size:
-                    batch_bichar_feats.data[idx][idy] = inst.m_bichar_indexes[idy]
-                    batch_extbichar_feats.data[idx][idy] = inst.m_extbichar_indexes[idy]
+                    batch_leftbichar_feats.data[idx][idy] = inst.m_leftbichar_indexes[idy]
+                    batch_leftextbichar_feats.data[idx][idy] = inst.m_leftextbichar_indexes[idy]
                 else:
-                    batch_bichar_feats.data[idx][idy] = self.hyperParams.bicharPaddingID
-                    batch_extbichar_feats.data[idx][idy] = self.hyperParams.extBicharPaddingID
+                    batch_leftbichar_feats.data[idx][idy] = self.hyperParams.bicharPaddingID
+                    batch_leftextbichar_feats.data[idx][idy] = self.hyperParams.extBicharPaddingID
+
+            for idy in range(max_bichar_size):
+                if idy < inst.m_bichar_size:
+                    batch_rightbichar_feats.data[idx][idy] = inst.m_rightbichar_indexes[idy]
+                    batch_rightextbichar_feats.data[idx][idy] = inst.m_rightextbichar_indexes[idy]
+                else:
+                    batch_rightbichar_feats.data[idx][idy] = self.hyperParams.bicharPaddingID
+                    batch_rightextbichar_feats.data[idx][idy] = self.hyperParams.extBicharPaddingID
 
             for idy in range(max_gold_size):
                 if idy < inst.m_gold_size:
@@ -269,8 +298,12 @@ class Trainer:
         feats.batch = batch
         feats.char_feats = batch_char_feats
         feats.extchar_feats = batch_extchar_feats
-        feats.bichar_feats = batch_bichar_feats
-        feats.extbichar_feats = batch_extbichar_feats
+
+        feats.leftbichar_feats = batch_leftbichar_feats
+        feats.rightbichar_feats = batch_rightbichar_feats
+        feats.leftextbichar_feats = batch_leftextbichar_feats
+        feats.rightextbichar_feats = batch_rightextbichar_feats
+
         feats.pos_feats = batch_pos_feats
         feats.char_type_feats = batch_char_type_feats
         feats.gold_feats = batch_gold_feats

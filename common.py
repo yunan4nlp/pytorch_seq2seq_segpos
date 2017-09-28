@@ -1,5 +1,9 @@
 import string
 
+unkkey = '-unk-'
+nullkey = '-NULL-'
+paddingkey = '-padding-'
+
 def getMaxIndex(hyperParams, decoder_output):
     max = decoder_output.data[0]
     maxIndex = 0
