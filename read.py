@@ -122,8 +122,6 @@ class Reader:
         for idx in range(alpha.m_size):
             if idx not in indexs:
                 oov += 1
-                str = alpha.from_id(idx)
-                print("str:", str)
         print("OOV Num: ", oov, "Total Num: ", alpha.m_size,
               "OOV Ratio: ", oov / alpha.m_size)
         print("OOV ", unk, "use avg value initialize")

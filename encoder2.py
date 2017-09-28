@@ -61,6 +61,13 @@ class Encoder(nn.Module):
         self.rightLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
                                            numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
+        self.linearLayer = nn.Linear(in_features= self.inputDim,
+                                    out_features=hyperParams.hiddenSize,
+                                    bias=True)
+        init.xavier_uniform(self.linearLayer.weight)
+        self.linearLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
+                                           numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
+
         self.lstm_left = nn.LSTMCell(input_size=hyperParams.hiddenSize,
                                      hidden_size=hyperParams.rnnHiddenSize,
                                      bias=True)
@@ -128,7 +135,7 @@ class Encoder(nn.Module):
         rightConcat = torch.cat((char, extChar, rightBichar, rightExtBichar, charType), 2)
         rightConcat = rightConcat.view(batch * char_num, self.inputDim)
 
-        leftNoLinear = self.dropOut(F.tanh(self.leftLayer(leftConcat)))
+        leftNoLinear = self.dropOut(F.tanh(self.linearLayer(leftConcat)))
         leftNoLinear = leftNoLinear.view(batch, char_num, self.hyperParams.hiddenSize)
         leftLSTMinput = leftNoLinear.permute(1, 0, 2)
 
@@ -140,7 +147,7 @@ class Encoder(nn.Module):
             leftLSTMoutput.append(left_h.view(1, batch, self.hyperParams.rnnHiddenSize))
         leftLSTMoutput = torch.cat(leftLSTMoutput, 0).permute(1, 0, 2)
 
-        rightNoLinear = self.dropOut(F.tanh(self.rightLayer(rightConcat)))
+        rightNoLinear = self.dropOut(F.tanh(self.linearLayer(rightConcat)))
         rightNoLinear = rightNoLinear.view(batch, char_num, self.hyperParams.hiddenSize)
         rightLSTMinput = rightNoLinear.permute(1, 0, 2)
 

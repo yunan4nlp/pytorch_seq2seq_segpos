@@ -12,7 +12,7 @@ import torch.nn
 import torch.autograd
 import torch.nn.functional
 import random
-
+import time
 
 class Trainer:
     def __init__(self):
@@ -366,6 +366,7 @@ class Trainer:
         test_eval_seg = Eval()
         test_eval_pos = Eval()
         for iter in range(self.hyperParams.maxIter):
+            start = time.time()
             print('###Iteration' + str(iter) + '###')
             random.shuffle(indexes)
             self.encoder.train()
@@ -403,9 +404,11 @@ class Trainer:
 
                 encoder_optimizer.step()
                 decoder_optimizer.step()
+            print("train time cost: ", time.time() - start, 's')
 
             self.encoder.eval()
             self.decoder.eval()
+            start = time.time()
             dev_eval_seg.clear()
             dev_eval_pos.clear()
             for idx in range(len(devInsts)):
@@ -416,9 +419,11 @@ class Trainer:
             print('seg dev: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
             p, r, f = dev_eval_pos.getFscore()
             print('pos dev: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+            print('dev cost time', time.time() - start, 's')
 
             test_eval_seg.clear()
             test_eval_pos.clear()
+            start = time.time()
             for idx in range(len(testInsts)):
                 inst = testInsts[idx]
                 state = self.predict(inst)
@@ -427,6 +432,7 @@ class Trainer:
             print('seg test: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
             p, r, f = test_eval_pos.getFscore()
             print('pos test: precision = ', str(p), ', recall = ', str(r), ', f-score = ', str(f))
+            print('test cost time', time.time() - start, 's')
 
 
 

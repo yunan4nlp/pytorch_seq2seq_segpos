@@ -61,9 +61,9 @@ class HyperParams:
         self.thread = 1
         self.learningRate = 0.001##down
         self.reg = 1e-8 ##up
-        self.maxInstance = 3
+        self.maxInstance = 4
         self.gpuID = 1
-        self.batch = 1
+        self.batch = 2
         self.useCuda = False
 
         self.wordAlpha = Alphabet()
