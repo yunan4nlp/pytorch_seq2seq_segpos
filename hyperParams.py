@@ -7,6 +7,7 @@ class HyperParams:
         self.extBicharNum = 0
         self.posNum = 0
         self.labelSize = 0
+        self.appID = 0
 
 
         self.start = '-start-'
@@ -63,7 +64,7 @@ class HyperParams:
         self.reg = 1e-8 ##up
         self.maxInstance = 4
         self.gpuID = 1
-        self.batch = 2
+        self.batch = 1
         self.useCuda = False
 
         self.wordAlpha = Alphabet()

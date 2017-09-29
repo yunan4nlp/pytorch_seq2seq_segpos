@@ -7,6 +7,7 @@ from decoder2 import Decoder
 from common import  getMaxIndex
 from common import  paddingkey
 from common import  unkkey
+from common import  app
 from eval import Eval
 import torch.nn
 import torch.autograd
@@ -113,6 +114,7 @@ class Trainer:
 
         self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(paddingkey)
         self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(paddingkey)
+        self.hyperParams.appID = self.hyperParams.labelAlpha.from_string(app)
 
         self.hyperParams.wordAlpha.set_fixed_flag(True)
         self.hyperParams.charAlpha.set_fixed_flag(True)
@@ -143,6 +145,7 @@ class Trainer:
         print("ext bichar size: ", self.hyperParams.extBicharNum)
         print("pos size: ", self.hyperParams.posNum)
         print("char type size: ", self.hyperParams.charTypeNum)
+        print("app ID: ", self.hyperParams.appID)
 
     def addTestAlphabet(self, testInsts):
         print("add test alpha...")

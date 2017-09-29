@@ -1,6 +1,8 @@
 from instance import  Instance
 from common import wordtype
 from common import nullkey
+from common import sep
+from common import app
 import unicodedata
 import torch
 import re
@@ -54,10 +56,10 @@ class Reader:
                         inst.m_chars.append(char)
                         inst.m_char_types.append(wordtype(char))
                         if idx == 0:
-                            inst.m_gold.append('SEP#' + label)
+                            inst.m_gold.append(sep + '#' + label)
                             inst.m_pos.append(label)
                         else:
-                            inst.m_gold.append('APP')
+                            inst.m_gold.append(app)
                 char_num = len(inst.m_chars)
                 for idx in range(char_num):
                     if idx - 1 >= 0:

@@ -3,6 +3,8 @@ import string
 unkkey = '-unk-'
 nullkey = '-NULL-'
 paddingkey = '-padding-'
+sep = 'SEP'
+app = 'APP'
 
 def getMaxIndex(hyperParams, decoder_output):
     max = decoder_output.data[0]

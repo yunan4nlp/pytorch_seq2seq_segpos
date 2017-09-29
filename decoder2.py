@@ -1,4 +1,5 @@
 import torch
+import sys
 import torch.nn as nn
 import torch.nn.functional as F
 from state import state
@@ -66,12 +67,15 @@ class Decoder(nn.Module):
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = self.linearLayer(v)
+                    if idy == 0:
+                        output.data[0][self.hyperParams.appID] = -sys.maxsize - 1
                     self.action(s, idy, encoder_output[idx], output, bTrain)
                     sent_output.append(output)
                 else:
                     sent_output.append(self.bucket)
             sent_output = torch.cat(sent_output, 0)
             batch_output.append(sent_output)
+            print(s.actions)
             batch_state.append(s)
         batch_output = torch.cat(batch_output, 0)
         batch_output = self.softmax(batch_output)
@@ -108,13 +112,7 @@ class Decoder(nn.Module):
         pos = action.find('#')
         if pos == -1:
             ###app
-            if len(state.words) == 0:
-                state.words.append("")
-                state.pos_id.append(self.hyperParams.posUNKID)
-                state.pos_labels.append(self.hyperParams.posAlpha.from_id(self.hyperParams.posUNKID))
-                state.words[-1] += state.m_chars[index]
-            else:
-                state.words[-1] += state.m_chars[index]
+            state.words[-1] += state.m_chars[index]
         else:
             ###sep
             tmp_word = state.m_chars[index]
