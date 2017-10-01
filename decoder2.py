@@ -33,7 +33,7 @@ class Decoder(nn.Module):
         if hyperParams.useCuda:self.bucket = self.bucket.cuda(self.hyperParams.gpuID)
         self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
         if hyperParams.useCuda:self.bucket_rnn = self.bucket_rnn.cuda(self.hyperParams.gpuID)
-        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2,
+        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.rnnHiddenSize,
                                      out_features=hyperParams.labelSize,
                                      bias=False)
         self.combineWordPos = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.posEmbSize,
@@ -56,16 +56,16 @@ class Decoder(nn.Module):
         for idx in range(batch):
             inst = insts[idx]
             s = state(inst, self.hyperParams)
-            s.h, s.c = self.incLSTM(s.last_word_pos_emb, (s.h, s.c))
+            s.h, s.c = self.incLSTM(s.z, (s.h, s.c))
             s.h = self.dropOut(s.h)
             sent_output = []
             real_char_num = inst.m_char_size
             for idy in range(char_num):
                 if idy < real_char_num:
                     #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
-                    #v = torch.cat((s.h, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    v = torch.cat((s.h, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
-                    v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
+                    #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = self.linearLayer(v)
                     if idy == 0:
                         output.data[0][self.hyperParams.appID] = -sys.maxsize - 1
@@ -75,7 +75,7 @@ class Decoder(nn.Module):
                     sent_output.append(self.bucket)
             sent_output = torch.cat(sent_output, 0)
             batch_output.append(sent_output)
-            print(s.actions)
+            #print(s.actions)
             batch_state.append(s)
         batch_output = torch.cat(batch_output, 0)
         batch_output = self.softmax(batch_output)
@@ -105,8 +105,8 @@ class Decoder(nn.Module):
             state.last_word_emb = F.avg_pool1d(chars_emb.permute(0, 2, 1), last_word_len).view(1, self.hyperParams.rnnHiddenSize * 2)
 
             concat = torch.cat((state.last_pos_emb, state.last_word_emb), 1)
-            state.last_word_pos_emb = self.dropOut(F.tanh(self.combineWordPos(concat)))
-            state.h, state.c = self.incLSTM(state.last_word_pos_emb, (state.h, state.c))
+            state.z = self.dropOut(F.tanh(self.combineWordPos(concat)))
+            state.h, state.c = self.incLSTM(state.z, (state.word_hiddens[-1], state.word_cells[-1]))
             state.h = self.dropOut(state.h)
 
         pos = action.find('#')
@@ -121,5 +121,8 @@ class Decoder(nn.Module):
             state.pos_labels.append(posLabel)
             posID = self.hyperParams.posAlpha.from_string(posLabel)
             state.pos_id.append(posID)
+
+            state.word_cells.append(state.c)
+            state.word_hiddens.append(state.h)
 
 
