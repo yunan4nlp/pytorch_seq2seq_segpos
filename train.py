@@ -14,14 +14,16 @@ import torch.autograd
 import torch.nn.functional
 import random
 import time
+import collections
 
 class Trainer:
     def __init__(self):
-        self.word_state = {}
-        self.char_state = {}
-        self.bichar_state = {}
-        self.chartype_state = {}
-        self.pos_state = {}
+        self.word_state = collections.OrderedDict()
+        self.char_state = collections.OrderedDict()
+        self.bichar_state = collections.OrderedDict()
+        self.chartype_state = collections.OrderedDict()
+        self.pos_state = collections.OrderedDict()
+        self.word_len_state = collections.OrderedDict()
         self.hyperParams = HyperParams()
 
     def createAlphabet(self, trainInsts, devInsts, testInsts):
@@ -63,16 +65,16 @@ class Trainer:
         #self.addTestAlphabet(devInsts)
         #self.addTestAlphabet(testInsts)
 
-        self.chartype_state['U'] = 1
-        self.chartype_state['u'] = 1
-        self.chartype_state['E'] = 1
-        self.chartype_state['e'] = 1
-        self.chartype_state['p'] = 1
-        self.chartype_state['d'] = 1
-        self.chartype_state['o'] = 1
-        self.chartype_state[paddingkey] = 1
+        self.hyperParams.charTypeAlpha.from_string('U')
+        self.hyperParams.charTypeAlpha.from_string('u')
+        self.hyperParams.charTypeAlpha.from_string('E')
+        self.hyperParams.charTypeAlpha.from_string('e')
+        self.hyperParams.charTypeAlpha.from_string('p')
+        self.hyperParams.charTypeAlpha.from_string('d')
+        self.hyperParams.charTypeAlpha.from_string('o')
+        self.hyperParams.charTypeAlpha.from_string(unkkey)
+        self.hyperParams.charTypeAlpha.from_string(paddingkey)
 
-        self.hyperParams.charTypeAlpha.initial(self.chartype_state)
 
         self.word_state[unkkey] = self.hyperParams.wordCutOff + 1
         self.word_state[paddingkey] = self.hyperParams.wordCutOff + 1
@@ -85,6 +87,15 @@ class Trainer:
 
         self.pos_state[unkkey] = 1
         self.pos_state[paddingkey] = 1
+
+        self.hyperParams.wordLenAlpha.from_string('0')
+        self.hyperParams.wordLenAlpha.from_string('1')
+        self.hyperParams.wordLenAlpha.from_string('2')
+        self.hyperParams.wordLenAlpha.from_string('3')
+        self.hyperParams.wordLenAlpha.from_string('4')
+        self.hyperParams.wordLenAlpha.from_string('5')
+        self.hyperParams.wordLenAlpha.from_string('6')
+
 
         self.hyperParams.wordAlpha.initial(self.word_state, self.hyperParams.wordCutOff)
         self.hyperParams.charAlpha.initial(self.char_state, self.hyperParams.charCutOff)
@@ -102,18 +113,19 @@ class Trainer:
         self.hyperParams.wordUNKID = self.hyperParams.wordAlpha.from_string(unkkey)
         self.hyperParams.charUNKID = self.hyperParams.charAlpha.from_string(unkkey)
         self.hyperParams.extCharUNKID = self.hyperParams.extCharAlpha.from_string(unkkey)
-        self.hyperParams.posUNKID = self.hyperParams.posAlpha.from_string(unkkey)
         self.hyperParams.bicharUNKID = self.hyperParams.bicharAlpha.from_string(unkkey)
         self.hyperParams.extBicharUNKID = self.hyperParams.extBicharAlpha.from_string(unkkey)
+        self.hyperParams.charTypeUNKID = self.hyperParams.charTypeAlpha.from_string(unkkey)
+        self.hyperParams.posUNKID = self.hyperParams.posAlpha.from_string(unkkey)
 
         self.hyperParams.wordPaddingID = self.hyperParams.wordAlpha.from_string(paddingkey)
         self.hyperParams.charPaddingID = self.hyperParams.charAlpha.from_string(paddingkey)
         self.hyperParams.extCharPaddingID = self.hyperParams.extCharAlpha.from_string(paddingkey)
         self.hyperParams.bicharPaddingID = self.hyperParams.bicharAlpha.from_string(paddingkey)
         self.hyperParams.extBicharPaddingID = self.hyperParams.extBicharAlpha.from_string(paddingkey)
-
         self.hyperParams.posPaddingID = self.hyperParams.posAlpha.from_string(paddingkey)
         self.hyperParams.charTypePaddingID = self.hyperParams.charTypeAlpha.from_string(paddingkey)
+
         self.hyperParams.appID = self.hyperParams.labelAlpha.from_string(app)
 
         self.hyperParams.wordAlpha.set_fixed_flag(True)
@@ -127,6 +139,7 @@ class Trainer:
         self.hyperParams.charTypeAlpha.set_fixed_flag(True)
 
         self.hyperParams.wordNum = self.hyperParams.wordAlpha.m_size
+        self.hyperParams.wordLenNum = self.hyperParams.wordLenAlpha.m_size
         self.hyperParams.charNum = self.hyperParams.charAlpha.m_size
         self.hyperParams.bicharNum = self.hyperParams.bicharAlpha.m_size
         self.hyperParams.extCharNum = self.hyperParams.extCharAlpha.m_size
@@ -139,12 +152,17 @@ class Trainer:
 
         print("label size: ", self.hyperParams.labelSize)
         print("word size: ", self.hyperParams.wordNum)
+        print("word len size: ", self.hyperParams.wordLenNum)
         print("char size: ", self.hyperParams.charNum)
         print("ext char size: ", self.hyperParams.extCharNum)
         print("bichar size: ", self.hyperParams.bicharNum)
         print("ext bichar size: ", self.hyperParams.extBicharNum)
         print("pos size: ", self.hyperParams.posNum)
         print("char type size: ", self.hyperParams.charTypeNum)
+        print("char type padding id: ", self.hyperParams.charTypePaddingID)
+        print("char padding id: ", self.hyperParams.charPaddingID)
+        print("exchar padding id: ", self.hyperParams.extCharPaddingID)
+        print("exbichar padding id: ", self.hyperParams.extBicharPaddingID)
         print("app ID: ", self.hyperParams.appID)
 
     def addTestAlphabet(self, testInsts):
@@ -176,7 +194,7 @@ class Trainer:
 
                 pos = inst.m_pos[idx]
                 posID = self.hyperParams.posAlpha.from_string(pos)
-                if(wordID == -1):
+                if(posID == -1):
                     posID = self.hyperParams.posUNKID
                 inst.m_pos_indexes.append(posID)
 
@@ -216,6 +234,8 @@ class Trainer:
             for idx in range(inst.m_char_type_size):
                 charType = inst.m_char_types[idx]
                 charTypeID = self.hyperParams.charTypeAlpha.from_string(charType)
+                if charTypeID == -1:
+                    charTypeID = self.hyperParams.charTypeUNKID
                 inst.m_char_type_indexes.append(charTypeID)
 
 
@@ -372,6 +392,7 @@ class Trainer:
             start = time.time()
             print('###Iteration' + str(iter) + '###')
             random.shuffle(indexes)
+            print('random: ', indexes[0],', ',indexes[train_num-1])
             self.encoder.train()
             self.decoder.train()
             for updateIter in range(batchBlock):
@@ -389,7 +410,7 @@ class Trainer:
                 maxCharSize = feats.char_feats.size()[1]
                 #encoder_hidden = self.encoder.init_hidden(feats.batch)
                 encoder_output = self.encoder(feats)
-                decoder_output, _ = self.decoder(insts, encoder_output, feats.batch, True)
+                decoder_output, states = self.decoder(insts, encoder_output, feats.batch, True)
                 train_eval.clear()
                 for idx in range(feats.batch):
                     inst = insts[idx]
@@ -466,6 +487,8 @@ random.seed(0)
 torch.manual_seed(0)
 (options, args) = parser.parse_args()
 l = Trainer()
+if l.hyperParams.useCuda: torch.cuda.manual_seed_all(0)
+if l.hyperParams.useCuda: torch.cuda.manual_seed(0)
 if options.learn:
     l.train(options.trainFile, options.devFile, options.testFile, options.modelFile)
 else:

@@ -90,13 +90,14 @@ class Reader:
         r.close()
         return insts
 
-    def load_pretrain(self, file, alpha, unk):
+    def load_pretrain(self, file, alpha, unk, padding):
         f = open(file, encoding='utf-8')
         allLines = f.readlines()
-        indexs = []
+        indexs = set()
         info = allLines[0].strip().split(' ')
         embDim = len(info) - 1
         emb = nn.Embedding(alpha.m_size, embDim)
+
         init.uniform(emb.weight,
                      a=-numpy.sqrt(3 / embDim),
                      b=numpy.sqrt(3 / embDim))
@@ -105,7 +106,7 @@ class Reader:
             info = line.split(' ')
             wordID = alpha.from_string(info[0])
             if wordID >= 0:
-                indexs.append(wordID)
+                indexs.add(wordID)
                 for idx in range(embDim):
                     val = float(info[idx + 1])
                     emb.weight.data[wordID][idx] = val
@@ -115,7 +116,11 @@ class Reader:
         for idx in range(embDim):
             oov_emb[0][idx] /= count
         unkID = alpha.from_string(unk)
+        paddingID = alpha.from_string(padding)
+        for idx in range(embDim):
+            emb.weight.data[paddingID][idx] = 0
         print('UNK ID: ', unkID)
+        print('Padding ID: ', paddingID)
         if unkID != -1:
             for idx in range(embDim):
                 emb.weight.data[unkID][idx] = oov_emb[0][idx]

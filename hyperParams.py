@@ -1,6 +1,9 @@
+import collections
+
 class HyperParams:
     def __init__(self):
         self.wordNum = 0
+        self.wordLenNum = 0
         self.charNum = 0
         self.extCharNum = 0
         self.bicharNum = 0
@@ -26,6 +29,9 @@ class HyperParams:
         self.wordEmbFile = ""
         self.wordUNKID = 0
         self.wordPaddingID = 0
+
+        self.wordLenEmbSize = 20
+        self.wordLenFineTune = True
 
         self.charTypeEmbSize = 20
         self.charTypeFineTune = True
@@ -64,7 +70,7 @@ class HyperParams:
         self.reg = 1e-8 ##up
         self.maxInstance = 4
         self.gpuID = 1
-        self.batch = 1
+        self.batch = 4
         self.useCuda = False
 
         self.wordAlpha = Alphabet()
@@ -74,6 +80,8 @@ class HyperParams:
         self.charAlpha = Alphabet()
         self.extBicharAlpha = Alphabet()
         self.extCharAlpha = Alphabet()
+
+        self.wordLenAlpha = Alphabet()
 
         self.labelAlpha = Alphabet()
         self.posAlpha = Alphabet()
@@ -110,7 +118,7 @@ class Alphabet:
         self.m_size = 0
         self.m_b_fixed = False
         self.id2string = []
-        self.string2id = {}
+        self.string2id = collections.OrderedDict()
 
     def from_id(self, qid, defineStr = ''):
         if int(qid) < 0 or self.m_size <= qid:
