@@ -21,27 +21,27 @@ class Encoder(nn.Module):
         self.extBiCharEmb.weight.requires_grad = False
 
         self.charEmb = nn.Embedding(hyperParams.charNum, hyperParams.charEmbSize)
-        init.uniform(self.charEmb.weight,
-                     a=-numpy.sqrt(3 /hyperParams.charEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.charEmbSize))
+        # init.uniform(self.charEmb.weight,
+        #              a=-numpy.sqrt(3 /hyperParams.charEmbSize),
+        #              b=numpy.sqrt(3 / hyperParams.charEmbSize))
         self.charDim = hyperParams.charEmbSize
         self.charEmb.weight.requires_grad = True
         for idx in range(self.charDim):
             self.charEmb.weight.data[self.hyperParams.charPaddingID][idx] = 0
 
         self.charTypeEmb = nn.Embedding(hyperParams.charTypeNum, hyperParams.charTypeEmbSize)
-        init.uniform(self.charTypeEmb.weight,
-                     a=-numpy.sqrt(3 / hyperParams.charTypeEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.charTypeEmbSize))
+        # init.uniform(self.charTypeEmb.weight,
+        #              a=-numpy.sqrt(3 / hyperParams.charTypeEmbSize),
+        #              b=numpy.sqrt(3 / hyperParams.charTypeEmbSize))
         self.charTypeDim = hyperParams.charTypeEmbSize
         self.charTypeEmb.weight.requires_grad = True
         for idx in range(self.charTypeDim):
             self.charTypeEmb.weight.data[self.hyperParams.charTypePaddingID][idx] = 0
 
         self.bicharEmb = nn.Embedding(hyperParams.bicharNum, hyperParams.bicharEmbSize)
-        init.uniform(self.bicharEmb.weight,
-                     a=-numpy.sqrt(3 /hyperParams.bicharEmbSize),
-                     b=numpy.sqrt(3 / hyperParams.bicharEmbSize))
+        # init.uniform(self.bicharEmb.weight,
+        #              a=-numpy.sqrt(3 /hyperParams.bicharEmbSize),
+        #              b=numpy.sqrt(3 / hyperParams.bicharEmbSize))
         self.bicharDim = hyperParams.bicharEmbSize
         self.bicharEmb.weight.requires_grad = True
         for idx in range(self.bicharDim):
@@ -52,20 +52,6 @@ class Encoder(nn.Module):
 
         self.inputDim = self.extCharDim + self.charDim + self.extBiCharDim + self.bicharDim + self.charTypeDim
         #self.inputDim = self.charDim + self.bicharDim
-
-        self.leftLayer = nn.Linear(in_features= self.inputDim,
-                                   out_features=hyperParams.hiddenSize,
-                                   bias=True)
-        init.xavier_uniform(self.leftLayer.weight)
-        self.leftLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
-                                          numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
-
-        self.rightLayer = nn.Linear(in_features= self.inputDim,
-                                    out_features=hyperParams.hiddenSize,
-                                    bias=True)
-        init.xavier_uniform(self.rightLayer.weight)
-        self.rightLayer.bias.data.uniform_(-numpy.sqrt(6 / (hyperParams.hiddenSize + 1)),
-                                           numpy.sqrt(6 / (hyperParams.hiddenSize + 1)))
 
         self.linearLayer = nn.Linear(in_features= self.inputDim,
                                      out_features=hyperParams.hiddenSize,
@@ -139,7 +125,6 @@ class Encoder(nn.Module):
 
         rightConcat = torch.cat((char, extChar, rightBichar, rightExtBichar, charType), 2)
         rightConcat = rightConcat.view(batch * char_num, self.inputDim)
-
         leftNoLinear = self.dropOut(F.tanh(self.linearLayer(leftConcat)))
         leftNoLinear = leftNoLinear.view(batch, char_num, self.hyperParams.hiddenSize)
         leftLSTMinput = leftNoLinear.permute(1, 0, 2)

@@ -39,7 +39,7 @@ class Decoder(nn.Module):
         if hyperParams.useCuda:self.bucket = self.bucket.cuda(self.hyperParams.gpuID)
         self.bucket_rnn = torch.autograd.Variable(torch.zeros(1, hyperParams.rnnHiddenSize)).type(torch.FloatTensor)
         if hyperParams.useCuda:self.bucket_rnn = self.bucket_rnn.cuda(self.hyperParams.gpuID)
-        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2,
+        self.linearLayer = nn.Linear(in_features=hyperParams.rnnHiddenSize * 2 + hyperParams.hiddenSize,
                                      out_features=hyperParams.labelSize,
                                      bias=False)
 
@@ -80,12 +80,12 @@ class Decoder(nn.Module):
                 if idy < real_char_num:
                     h_now, c_now = self.prepare(s, idy, encoder_output[idx])
                     #print(encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2))
-                    #v = torch.cat((h_now, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
+                    v = torch.cat((h_now, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
                     #v = torch.cat((self.bucket_rnn, encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)), 1)
-                    v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
+                    #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = self.linearLayer(v)
                     if idy == 0:
-                        output.data[0][self.hyperParams.appID] = -10e-99
+                        output.data[0][self.hyperParams.appID] = -1e+99
                     #self.action(s, idy, encoder_output[idx], output, bTrain)
                     self.my_action(s, idy, output, h_now, c_now, bTrain)
                     #output = self.softmax(output)
