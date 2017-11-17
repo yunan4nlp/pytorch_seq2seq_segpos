@@ -38,17 +38,17 @@ class HyperParams:
         #self.charEmbFile = ""
         self.charTypePaddingID = 0
 
-        self.bicharCutOff = 0
+        self.bicharCutOff = 1
         self.bicharEmbSize = 200
         self.bicharFineTune = False
-        self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_len\\data\\emb\\bichar.sample"
+        self.bicharEmbFile = "data/emb/bichar.sample"
         #self.bicharEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\bichar.vec"
         self.bicharUNKID = 0
         self.extBicharUNKID = 0
         self.bicharPaddingID = 0
         self.extBicharPaddingID = 0
 
-        self.charCutOff = 0
+        self.charCutOff = 1
         self.charEmbSize = 200
         self.charFineTune = False
         #self.charEmbFile = ""
@@ -56,7 +56,7 @@ class HyperParams:
         self.extCharUNKID = 0
         self.charPaddingID = 0
         self.extCharPaddingID = 0
-        self.charEmbFile = "C:\\Users\\yunan\\Desktop\\experiments-standard\\char.vec"
+        self.charEmbFile = "data/emb/char.sample"
         #self.charEmbFile = "E:\\py_workspace\\Seq2Seq_bmes\\data\\char.vec"
 
         self.posEmbSize = 100
@@ -68,7 +68,7 @@ class HyperParams:
         self.thread = 1
         self.learningRate = 0.001##down
         self.reg = 1e-8 ##up
-        self.maxInstance = 16
+        self.maxInstance = -1
         self.gpuID = 1
         self.batch = 16
         self.useCuda = False

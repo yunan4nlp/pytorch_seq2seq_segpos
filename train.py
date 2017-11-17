@@ -489,8 +489,5 @@ torch.manual_seed(0)
 l = Trainer()
 if l.hyperParams.useCuda: torch.cuda.manual_seed_all(0)
 if l.hyperParams.useCuda: torch.cuda.manual_seed(0)
-if options.learn:
-    l.train(options.trainFile, options.devFile, options.testFile, options.modelFile)
-else:
-    l.test(options.testFile,options.modelFile)
+l.train(options.trainFile, options.devFile, options.testFile, options.modelFile)
 

@@ -85,7 +85,7 @@ class Decoder(nn.Module):
                     #v = encoder_output[idx][idy].view(1, self.hyperParams.rnnHiddenSize * 2)
                     output = self.linearLayer(v)
                     if idy == 0:
-                        output.data[0][self.hyperParams.appID] = -1e+99
+                        output.data[0][self.hyperParams.appID] = -10e+99
                     #self.action(s, idy, encoder_output[idx], output, bTrain)
                     self.my_action(s, idy, output, h_now, c_now, bTrain)
                     #output = self.softmax(output)
