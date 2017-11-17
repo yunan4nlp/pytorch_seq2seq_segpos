@@ -1,0 +1,3 @@
+--train data\ctb60_pos\test.ctb60.pos.hwc --dev data\ctb60_pos\test.ctb60.pos.hwc --test data\ctb60_pos\test.ctb60.pos.hwc
+--train data\ctb60_pos\train.ctb60.pos.hwc --dev data\ctb60_pos\dev.ctb60.pos.hwc --test data\ctb60_pos\test.ctb60.pos.hwc
+--train data\ctb60_pos\sample.txt --dev data\ctb60_pos\sample.txt --test data\ctb60_pos\sample.txt
